@@ -1,0 +1,55 @@
+@font-face {
+    font-family: 'Rayplus-Icons';
+    font-style: normal;
+    font-weight: 400;
+    src: local('Rayplus-Icons'), url("~@/assets/fonts/Rayplus-Icons.woff") format('woff')/* , url("../fonts/Rayplus-Icons.ttf") format('truetype') */
+    ;
+}
+
+.rayplus-icons {
+    font-family: 'Rayplus-Icons';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px;
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    line-height: 1;
+    text-transform: none;
+    letter-spacing: normal;
+    word-wrap: normal;
+    white-space: nowrap;
+    direction: ltr;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: 'liga';
+}
+
+[v-cloak] {
+    display: none;
+}
+
+.center {
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: center;
+    align-items: center;
+}
+
+.txt-left {
+    text-align: left;
+}
+
+.txt-center {
+    text-align: center;
+}
+
+.txt-right {
+    text-align: right;
+}
+
+// 1px边框
+// .box-shadow-1px {
+//     box-shadow: inset 0px -1px 1px -1px #c8c7cc;
+// }
