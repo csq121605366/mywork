@@ -37,9 +37,10 @@
             </div>
             <div v-if="item.studies.length" v-for="(ceil,y) in item.studies" :key="y"  class="study__info__wrap study__study__info__wrap"
             :class="activeId == ceil.id?'active':''"
+            @click.stop="clickStudyHandle(ceil,ceil.id)"
             >
             <div class="study__study__info study__info">
-              <ul @click.stop="clickStudyHandle(ceil,ceil.id)">
+              <ul>
                 <li>
                   <span class="f">Study&nbsp;:&nbsp;{{ceil.description}}</span>
                 </li>
@@ -85,6 +86,7 @@ export default {
   },
   watch: {
     oPatients(res) {
+      console.log(res)
       if (res !== this.patients) {
         this.patients = res;
       }
@@ -110,6 +112,7 @@ export default {
           if (response.r) {
             alert("备注修改失败！");
           }
+          this.$emit('updateData');
           this.changeRemarkIng = false;
         });
       } else {

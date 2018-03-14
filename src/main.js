@@ -3,7 +3,7 @@ import Vue from 'vue'
 import App from './App.vue'
 import 'lib-flexible/flexible.js'
 import fastclick from 'fastclick'
-
+import VueLazyLoad from 'vue-lazyload'
 
 
 Vue.config.productionTip = false

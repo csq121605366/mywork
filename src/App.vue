@@ -3,12 +3,12 @@
     <co-header @backHandle="backHandle"></co-header>
     <co-study v-if="oPatients.length" ref="studyRef" @cycleLink="cycleLink" @seriesActive="seriesActive" :oPatients="oPatients"></co-study>
     <transition name="slideleft">
-      <co-series v-if="seriesShow" :oSeries="oSeries"></co-series>
+      <co-series v-if="seriesShow" @getCurseries="_getCurseries" :oSeries="oSeries"></co-series>
     </transition>
-    <co-layer :isShow="isShow" @changeType="changeLayerType">
-      <p>为了更好的体验，</p>
-      <p>建议您使用Chrome浏览器进入本系统</p>
-    </co-layer>
+    <keep-alive>
+      <co-images :curSeries="curSeries" :imgIY="imgIY"></co-images>
+    </keep-alive>
+    <co-layer :isShow="isShow" @changeType="changeLayerType"></co-layer>
   </div>
 </template>
 
@@ -17,7 +17,8 @@ import CoHeader from "@/components/co-header";
 import CoSeries from "@/components/co-series";
 import CoStudy from "@/components/co-study";
 import CoLayer from "@/components/co-layer";
-import { login, getUserStatus, getData } from "@/api";
+import CoImages from "@/components/co-images";
+import { login, getUserStatus, getData, mGetData } from "@/api";
 import { userAgent } from "@/util/tool";
 
 export default {
@@ -26,7 +27,8 @@ export default {
     CoHeader,
     CoSeries,
     CoStudy,
-    CoLayer
+    CoLayer,
+    CoImages
   },
   created() {
     if (!userAgent()) {
@@ -41,7 +43,9 @@ export default {
       isShow: false,
       oPatients: [],
       seriesShow: false,
-      oSeries: null
+      oSeries: null,
+      curSeries: null,
+      imgIY: null
     };
   },
   watch: {},
@@ -57,6 +61,7 @@ export default {
       // }
       // 重置活动id
       // this.$refs.studyRef.resetActiveId();
+      console.log("背景");
       this.seriesShow = false;
     },
     gotoLogin() {
@@ -99,11 +104,11 @@ export default {
           }
         });
       });
-      return;
     },
     _getData() {
       return new Promise((resolve, reject) => {
         getData().then(res => {
+          console.log('数据更新了')
           if (res.code && res.code == 1) {
             this.oPatients = res.patients;
             // this.oPatients[0].birth = new Date().getSeconds();
@@ -113,6 +118,16 @@ export default {
             reject();
           }
         });
+      });
+    },
+    _getCurseries(series, seriesId) {
+      mGetData({ seriesId }).then(res => {
+        if (res.code == 1) {
+          this.imgIY = res.IY;
+          this.curSeries = series;
+          console.log(this.imgIY);
+        } else {
+        }
       });
     },
     _initData() {
@@ -150,7 +165,6 @@ export default {
       }
     },
     seriesActive(res) {
-      console.log(res);
       this.seriesShow = true;
       this.oSeries = res;
     }

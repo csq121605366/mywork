@@ -1,18 +1,24 @@
 <template>
   <div v-cloak class="series">
     <div class="series__header">
-      <div class="series__header__btn series__header__btn--show" :class="showHide?'active':''">显示 "隐藏数据"</div>
-      <div class="series__header__btn series__header__btn--hide" :class="!showHide?'active':''">不显示 "隐藏数据"</div>
+      <div class="series__header__btn series__header__btn--show" @click.self.prevent="showHide=true" :class="showHide?'active':''">显示 "隐藏数据"</div>
+      <div class="series__header__btn series__header__btn--hide" @click.self.prevent="showHide=false" :class="!showHide?'active':''">不显示 "隐藏数据"</div>
     </div>
-    <div  v-if="series" class="series__content">
+    <div v-if="series" class="series__content">
       <scroll ref="scroll" class="series__scroll">
         <ul class="series__list">
-          <li v-for="(item,index) in series" :key="index" @click="getCurseries(item,item.id)" class="series__list__item">
-            <div class="series__list__order">
+          <li v-if="item.visible == 1||showHide?true:false" v-for="(item,index) in series" :key="index" class="series__list__item">
+            <!-- 显示数据 -->
+            <div @click="getCurseries(item,item.id)" v-if="item.visible" class="series__list__order visible">
               <img class="series__list__eye" src="./eye--light.png" />
-              <span>序列号:4689</span>
+              <span>序列号&nbsp;:&nbsp;{{item.id}}</span>
             </div>
-            <ul class="series__list__info box-shadow-1px">
+            <!-- 隐藏数据 -->
+            <div @click="getCurseries(item,item.id)" v-else class="series__list__order">
+              <img class="series__list__eye" src="./eye--gray.png" />
+              <span>序列号&nbsp;:&nbsp;{{item.id}}</span>
+            </div>
+            <ul @click="getCurseries(item,item.id)" class="series__list__info">
               <li>
                 <span>Series&nbsp;:&nbsp;{{item.description}}</span>
               </li>
@@ -28,15 +34,13 @@
                 <span class="txt-right">日期&nbsp;:&nbsp;{{item.date}}</span>
               </li>
             </ul>
-              <div class="series__list__remark">
-                  <span class="series__list__remark-label">备注&nbsp;:&nbsp;</span>
-                  <div class="series__list__remark-txt">
-                    <input class="study__list__remark-input" type="text" ref="remarksInput" disabled  :value="item.remarks.length?item.remarks:'点击右侧编辑图标，添加备注信息'"
-                    @blur.self.prevent="changeSeriesRemarks(item,index)"
-                    >
-                  </div>
-                  <img @click.self.prevent="remarkOnFocus(item,index)" class="series__list__remark-btn" src="./remark.png" />
+            <div class="series__list__remark">
+              <span class="series__list__remark-label">备注&nbsp;:&nbsp;</span>
+              <div class="series__list__remark-txt">
+                <input class="study__list__remark-input" type="text" ref="remarksInput" disabled :value="item.remarks.length?item.remarks:'点击右侧编辑图标，添加备注信息'" @blur.self.prevent="changeSeriesRemarks(item,index)">
               </div>
+              <img @click.self.prevent="remarkOnFocus(item,index)" class="series__list__remark-btn" src="./remark.png" />
+            </div>
           </li>
         </ul>
       </scroll>
@@ -47,7 +51,7 @@
 <script>
 import Scroll from "@/base/scroll";
 import { changeremarks } from "@/api";
-
+import { cloneObj } from "@/util/tool.js";
 export default {
   props: {
     oSeries: {
@@ -57,13 +61,27 @@ export default {
   },
   data() {
     return {
-      showHide:true,
-      series: this.oSeries,
+      showHide: false,
+      series: "",
       changeRemarkIng: false // 判断是否正在改变备注
     };
   },
+  mounted() {
+    this._initSeries();
+  },
   methods: {
-    getCurseries() {},
+    _initSeries() {
+      this.series = cloneObj(this.oSeries);
+      let n = cloneObj(this.oSeries[0]);
+      n.visible = 0;
+      this.series.push(n);
+      console.log(this.series)
+    },
+    getCurseries(series, series_id) {
+      if (!this.changeRemarkIng) {
+        this.$emit("getCurseries", series, series_id);
+      }
+    },
     remarkOnFocus(res, index) {
       this.changeRemarkIng = true;
       let e = this.$refs.remarksInput[index];
@@ -122,14 +140,11 @@ export default {
       font-size: 30px;
       background: #fff;
       text-align: center;
-
-      &--show {
+      background-color: #f5f5f5;
+      color: #666;
+      &.active {
         background-color: #f8efe0;
         color: #ea7400;
-      }
-      &--hide {
-        background-color: #f5f5f5;
-        color: #666;
       }
     }
   }
@@ -188,7 +203,7 @@ export default {
       font-size: 30px;
       height: 66px;
       line-height: 66px;
-      &.active {
+      &.visible {
         color: #ea7400;
       }
     }
