@@ -1,14 +1,15 @@
 <template>
   <div id="app">
     <co-header @backHandle="backHandle"></co-header>
-    <co-study v-if="oPatients.length" ref="studyRef" @cycleLink="cycleLink" @seriesActive="seriesActive" :oPatients="oPatients"></co-study>
-    <transition name="slideleft">
-      <co-series v-if="seriesShow" @getCurseries="_getCurseries" :oSeries="oSeries"></co-series>
+    <co-study v-if="oPatients" ref="studyRef" @studyNeedsUpdate="studyNeedsUpdate" @seriesActive="seriesActive" :oPatients="oPatients"></co-study>
+    <transition name="slideright">
+      <co-series v-if="seriesShow" @seriesNeedsUpate="seriesNeedsUpate" @getCurseries="_getCurseries" :oSeries="oSeries"></co-series>
     </transition>
-    <keep-alive>
-      <co-images :curSeries="curSeries" :imgIY="imgIY"></co-images>
-    </keep-alive>
-    <co-layer :isShow="isShow" @changeType="changeLayerType"></co-layer>
+      <co-images v-if="curSeries" :userInfo="userInfo" @imageShow="imageShow" :studyActive="studyActive" :curSeries="curSeries" :imgIY="imgIY"></co-images>
+    <co-layer :isShow="isShow" @changeType="changeLayerType">
+      <p>为了更好的体验，</p>
+      <p>建议您使用Chrome浏览器进入本系统</p>
+    </co-layer>
   </div>
 </template>
 
@@ -18,7 +19,7 @@ import CoSeries from "@/components/co-series";
 import CoStudy from "@/components/co-study";
 import CoLayer from "@/components/co-layer";
 import CoImages from "@/components/co-images";
-import { login, getUserStatus, getData, mGetData } from "@/api";
+import { login, getUserStatus, getData, mGetData, checkStatus } from "@/api";
 import { userAgent } from "@/util/tool";
 
 export default {
@@ -37,15 +38,17 @@ export default {
     this._initData();
   },
   data() {
-    this.cycleLinkTimer = 2e3;
     return {
       userInfo: null,
       isShow: false,
-      oPatients: [],
+      oPatients: null,
       seriesShow: false,
       oSeries: null,
       curSeries: null,
-      imgIY: null
+      imgIY: null,
+      studyActive: null,
+      msgShow: true,
+      message: ""
     };
   },
   watch: {},
@@ -98,7 +101,8 @@ export default {
             let used = Math.ceil(Number(res.used) * 100) / 100;
             this.userInfo = {
               name: res.username,
-              space: used + "G/" + space + "G"
+              space: used + "G/" + space + "G",
+              userStatus: res.userStatus
             };
             resolve(res);
           }
@@ -108,7 +112,6 @@ export default {
     _getData() {
       return new Promise((resolve, reject) => {
         getData().then(res => {
-          console.log('数据更新了')
           if (res.code && res.code == 1) {
             this.oPatients = res.patients;
             // this.oPatients[0].birth = new Date().getSeconds();
@@ -121,12 +124,18 @@ export default {
       });
     },
     _getCurseries(series, seriesId) {
+      // 根据series 去获取图片信息
       mGetData({ seriesId }).then(res => {
         if (res.code == 1) {
           this.imgIY = res.IY;
           this.curSeries = series;
-          console.log(this.imgIY);
         } else {
+          // 如果未获取
+          this.$message({
+            message: "获取信息失败",
+            type: "error",
+            durtion: 3e6
+          });
         }
       });
     },
@@ -150,23 +159,51 @@ export default {
         })
         .catch(() => {
           // 登陆不成功
-          console.log("登陆不成功");
+          this.$message({
+            message: "登录失败",
+            type: "error",
+            durtion: 3e6
+          });
         });
     },
-    cycleLink(close = true) {
-      if (close) {
-        this.timer = setTimeout(() => {
-          this._initData();
-        }, this.cycleLinkTimer);
-      } else if (!close && this.timer) {
-        clearInterval(this.timer);
-      } else {
-        console.error("未启动循环访问接口");
+    seriesNeedsUpate() {
+      // 数据自动更新 目前不用
+      // this._getCurseries();
+      console.log('seriesNeedUpate')
+      
+    },
+    studyNeedsUpdate(){
+      console.log('studyNeedsUpdate')
+    },
+    seriesActive(series, studyActive, updateArr) {
+      this.seriesShow = true;
+      this.oSeries = series;
+      this.studyActive = studyActive;
+      this.updateArr = updateArr;
+      if (updateArr.length) {
+        for (var i = 0, len = updateArr.length; i < len; i++) {
+          this._checkStatus(this.updateArr[i]);
+        }
       }
     },
-    seriesActive(res) {
-      this.seriesShow = true;
-      this.oSeries = res;
+    _checkStatus(series) {
+      setTimeout(() => {
+        checkStatus({ seriesid: series.id }).then(res => {
+          if (res.r > 2) {
+            // 如果大于2 表示数据已经更新 这个时候更新数据
+            this._initData();
+          } else {
+            this._checkStatus(series);
+          }
+        });
+      }, 3e4);
+    },
+    imageShow(flag) {
+      // 图层的显示和隐藏
+      if (!flag) {
+        // 首先删除传给子模块的数据
+        this.curSeries = null;
+      }
     }
   }
 };

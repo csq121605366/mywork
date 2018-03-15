@@ -7,15 +7,15 @@
     <div v-if="series" class="series__content">
       <scroll ref="scroll" class="series__scroll">
         <ul class="series__list">
-          <li v-if="item.visible == 1||showHide?true:false" v-for="(item,index) in series" :key="index" class="series__list__item">
-            <!-- 显示数据 -->
-            <div @click="getCurseries(item,item.id)" v-if="item.visible" class="series__list__order visible">
-              <img class="series__list__eye" src="./eye--light.png" />
+          <li :class="seriesActiveId==item.id?'active':''" v-if="item.visible == 1||showHide?true:false" v-for="(item,index) in series" :key="index" class="series__list__item">
+            <!-- 显示的数据 -->
+            <div v-if="item.visible" class="series__list__order visible">
+              <img @click.self.prevent="seriesShowHide(item,false)"  class="series__list__eye" src="./eye--light.png" />
               <span>序列号&nbsp;:&nbsp;{{item.id}}</span>
             </div>
-            <!-- 隐藏数据 -->
-            <div @click="getCurseries(item,item.id)" v-else class="series__list__order">
-              <img class="series__list__eye" src="./eye--gray.png" />
+            <!-- 隐藏的数据 -->
+            <div  v-else class="series__list__order">
+              <img @click.self.prevent="seriesShowHide(item,true)" class="series__list__eye" src="./eye--gray.png" />
               <span>序列号&nbsp;:&nbsp;{{item.id}}</span>
             </div>
             <ul @click="getCurseries(item,item.id)" class="series__list__info">
@@ -37,9 +37,11 @@
             <div class="series__list__remark">
               <span class="series__list__remark-label">备注&nbsp;:&nbsp;</span>
               <div class="series__list__remark-txt">
-                <input class="study__list__remark-input" type="text" ref="remarksInput" disabled :value="item.remarks.length?item.remarks:'点击右侧编辑图标，添加备注信息'" @blur.self.prevent="changeSeriesRemarks(item,index)">
+                <input class="study__list__remark-input" type="text" v-model="item.remarks" ref="remarksInput" disabled :value="item.remarks.length?item.remarks:'点击右侧编辑图标，添加备注信息'" 
+                @blur.self.prevent="changeSeriesRemarks(item,index)">
               </div>
-              <img @click.self.prevent="remarkOnFocus(item,index)" class="series__list__remark-btn" src="./remark.png" />
+              <img v-if="focusId!=index" @click.self.prevent="remarkOnFocus(item,index)" class="series__list__remark-btn" src="./remark.png" />
+              <img v-else @click.self.prevent="changeSeriesRemarks(item,index)" class="series__list__remark-btn" src="./qd.png" alt="">
             </div>
           </li>
         </ul>
@@ -50,7 +52,7 @@
 
 <script>
 import Scroll from "@/base/scroll";
-import { changeremarks } from "@/api";
+import { changeremarks, seriesHide, seriesShow } from "@/api";
 import { cloneObj } from "@/util/tool.js";
 export default {
   props: {
@@ -63,8 +65,15 @@ export default {
     return {
       showHide: false,
       series: "",
+      seriesActiveId: -1,
+      focusId: -1,
       changeRemarkIng: false // 判断是否正在改变备注
     };
+  },
+  watch: {
+    oSeries() {
+      this._initSeries();
+    }
   },
   mounted() {
     this._initSeries();
@@ -72,18 +81,18 @@ export default {
   methods: {
     _initSeries() {
       this.series = cloneObj(this.oSeries);
-      let n = cloneObj(this.oSeries[0]);
-      n.visible = 0;
-      this.series.push(n);
-      console.log(this.series)
     },
     getCurseries(series, series_id) {
+      // 点击series
+      this.seriesActiveId = -1;
       if (!this.changeRemarkIng) {
+        this.seriesActiveId = series_id;
         this.$emit("getCurseries", series, series_id);
       }
     },
     remarkOnFocus(res, index) {
       this.changeRemarkIng = true;
+      this.focusId = index;
       let e = this.$refs.remarksInput[index];
       e.disabled = false;
       e.focus();
@@ -91,7 +100,7 @@ export default {
     changeSeriesRemarks(res, index) {
       let e = this.$refs.remarksInput[index];
       e.disabled = true;
-      if (e.value == "" || e.value !== res.remarks) {
+      if (e.value != "") {
         let data = {
           seriesid: res.id,
           remarks: e.value
@@ -101,11 +110,49 @@ export default {
             alert("备注修改失败！");
           }
           this.changeRemarkIng = true;
+          this.focusId = -1;
+          this.$emit('seriesNeedsUpdate');
         });
       } else {
         e.value = res.remarks;
         this.changeRemarkIng = true;
+        this.focusId = -1;
       }
+    },
+    seriesShowHideReq(req, flag) {
+      // 显示隐藏 功能键
+      // flag = true 表示显示 flage = false 表示隐藏
+      if (flag) {
+        return new Promise((resolve, reject) => {
+          seriesShow({ id: req.id }).then(res => {
+            if (res.code == 1) {
+              resolve();
+            } else {
+              reject();
+            }
+          });
+        });
+      } else {
+        return new Promise((resolve, reject) => {
+          seriesHide({ number: 1, "seriesId[0]": req.id }).then(res => {
+            if (res.code == 1) {
+              resolve();
+            } else {
+              reject();
+            }
+          });
+        });
+      }
+    },
+    seriesShowHide(req, flag) {
+      this.seriesShowHideReq(req, flag)
+        .then(() => {
+          console.log("操作成功");
+          req.visible = flag ? 1 : 0;
+        })
+        .catch(() => {
+          console.log("操作失败");
+        });
     }
   },
   components: {
@@ -186,7 +233,7 @@ export default {
       margin-top: 10px;
       background-color: #fff;
       border: 4px solid #fff;
-      padding: 0 26px;
+      padding: 10px 26px;
       &.active {
         border-color: #ea7400;
       }
@@ -211,8 +258,7 @@ export default {
       position: relative;
       font-size: 30px;
       line-height: 1;
-      padding-bottom: 22px;
-      padding-top: 25px;
+      padding-top: 16px;
       display: flex;
       flex-flow: row nowrap;
       justify-content: space-between;
@@ -222,7 +268,7 @@ export default {
         width: 100px;
       }
       &-txt {
-        height: 50px;
+        height: 74px;
         flex: 1 1 auto;
         position: relative;
       }
@@ -231,6 +277,10 @@ export default {
       }
       &-input {
         position: absolute;
+        text-indent: 10px;
+        line-height: 56px;
+        border: 2px solid #fff;
+        background-color: transparent;
         left: 0;
         top: 0;
         width: 100%;
@@ -238,10 +288,15 @@ export default {
         background-color: transparent;
         height: 100%;
         color: #999;
+        &:focus {
+          background-color: #e3e6e6;
+          border: 2px solid #e6a118;
+        }
       }
       &-btn {
         height: 34px;
-        width: 38px;
+        width: 68px;
+        padding-left: 30px;
       }
     }
   }

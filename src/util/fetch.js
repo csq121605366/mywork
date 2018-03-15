@@ -10,12 +10,12 @@ const service = axios.create({
         'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
     },
     // 发送请求前处理request的数据
-    transformRequest: [function (data, headers) {
-            let newData = ''
-            for (let k in data) {
-                newData += encodeURIComponent(k) + '=' + encodeURIComponent(data[k]) + '&'
+    transformRequest: [function (data) {
+            var str = [];
+            for (var p in data) {
+                str.push(encodeURIComponent(p) + "=" + encodeURIComponent(data[p]));
             }
-            return newData
+            return str.join("&");
         }
     ]
 })

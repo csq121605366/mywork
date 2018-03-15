@@ -3,16 +3,28 @@
     <div class="study__header">
       <div class="study__search">
         <span class="study__search__icon rayplus-icons">search</span>
-        <input class="study__search__txt" placeholder="姓名 / ID / 日期 / 描述 / 备注" type="text">
+        <input class="study__search__txt" v-model="searchInput" @change.stop.prevent="serachHandle" placeholder="姓名 / ID / 日期 / 描述 / 备注" type="text">
       </div>
     </div>
     <ul class="study__sort">
-      <li class="active">
-        <span>病人ID</span><img v-show="false" src="./sort--gray.png" alt=""><img src="./sort--light.png" alt=""></li>
-      <li>
-        <span>病人姓名</span><img v-show="false" src="./sort--gray.png" alt=""><img src="./sort--light.png" alt=""></li>
-      <li>
-        <span>上传时间</span><img v-show="false" src="./sort--gray.png" alt=""><img src="./sort--light.png" alt=""></li>
+      <li @click.stop.prevent="sort('id')">
+           <span>病人ID</span>
+          <img v-if="sortParam.sortBy=='id'&&sortParam.sortDir" style="transform: rotateZ(-180deg);"  src="./sort--light.png" alt="">
+          <img v-else-if="sortParam.sortBy=='id'&&!sortParam.sortDir" src="./sort--light.png" alt="">
+          <img v-else src="./sort--gray.png" alt="">
+        </li>
+      <li @click.stop.prevent="sort('name')">
+          <span>病人姓名</span>
+          <img v-if="sortParam.sortBy=='name'&&sortParam.sortDir"  style="transform: rotateZ(-180deg);"  src="./sort--light.png" alt="">
+          <img v-else-if="sortParam.sortBy=='name'&&!sortParam.sortDir"  src="./sort--light.png" alt="">
+          <img v-else src="./sort--gray.png" alt="">
+       </li>
+      <li @click.stop.prevent="sort('uploadTime')">
+            <span>上传时间</span>
+            <img v-if="sortParam.sortBy=='uploadTime'&&sortParam.sortDir"  style="transform: rotateZ(-180deg);"  src="./sort--light.png" alt="">
+            <img v-else-if="sortParam.sortBy=='uploadTime'&&!sortParam.sortDir" src="./sort--light.png" alt="">
+            <img v-else src="./sort--gray.png" alt="">
+        </li>
     </ul>
     <section class="study__content">
       <scroll class="study__scroll">
@@ -52,11 +64,12 @@
                 <div class="study__list__remark">
                 <span class="study__list__remark-label">备注&nbsp;:&nbsp;</span>
                 <div class="study__list__remark-txt">
-                  <input  class="study__list__remark-input" type="text" ref="remarksInput" disabled :value="ceil.remarks.length?ceil.remarks:'点击右侧编辑图标，添加备注信息'"
-                    @blur.self.prevent="changeStudyRemarks(ceil,y)"
+                  <input class="study__list__remark-input" type="text" v-model="ceil.remarks" :ref="'remarksInput-'+x+'-'+y" disabled placeholder="点击右侧编辑图标，添加备注信息"
+                    @blur.self.prevent="changeStudyRemarks(ceil,x,y)"
                   >
                 </div>
-                <img @click.self.prevent="remarkOnFocus(ceil,y)" class="study__list__remark-btn" src="./remark.png" />
+                <img v-if="focusId.x!=x||focusId.y!=y" @click.self="remarkOnFocus(ceil,x,y)" class="study__list__remark-btn" src="./remark.png" />
+                <img v-else @click.self.prevent="changeStudyRemarks(ceil,x,y)" class="study__list__remark-btn" src="./qd.png" alt="">
               </div>
             </div>
             </div>
@@ -70,6 +83,9 @@
 <script>
 import Scroll from "@/base/scroll";
 import { changeremarks } from "@/api";
+import { cloneObj } from "@/util/tool.js";
+import sortBy from "lodash/sortBy";
+
 export default {
   props: {
     oPatients: {
@@ -79,31 +95,42 @@ export default {
   },
   data() {
     return {
-      patients: this.oPatients,
+      patients: null,
       activeId: -1,
-      changeRemarkIng: false // 判断是否正在改变备注
+      sortParam: { sortBy: "name", sortDir: true },
+      // 判断是否正在改变备注
+      changeRemarkIng: false,
+      searchInput: "",
+      focusId: { x: -1, y: -1 }
     };
   },
   watch: {
     oPatients(res) {
-      console.log(res)
       if (res !== this.patients) {
-        this.patients = res;
+        this._initData();
       }
     }
   },
+  mounted() {
+    this._initData();
+    console.log(this.patients);
+  },
   methods: {
-    remarkOnFocus(res, index) {
+    _initData() {
+      this.patients = cloneObj(this.oPatients);
+    },
+    remarkOnFocus(res, x, y) {
+      this.focusId = { x, y };
       this.changeRemarkIng = true;
-      let e = this.$refs.remarksInput[index];
+      let e = this.$refs["remarksInput-" + x + "-" + y][0];
       e.disabled = false;
       e.focus();
     },
-    changeStudyRemarks(res, index) {
-      let e = this.$refs.remarksInput[index];
+    changeStudyRemarks(res, x, y) {
+      let e = this.$refs["remarksInput-" + x + "-" + y][0];
       // 将输入框变为不可用
       e.disabled = true;
-      if (e.value == "" || e.value !== res.remarks) {
+      if (e.value != "" ) {
         let data = {
           studyid: res.id,
           remarks: e.value
@@ -112,12 +139,14 @@ export default {
           if (response.r) {
             alert("备注修改失败！");
           }
-          this.$emit('updateData');
+          this.$emit("studyNeedsUpdate");
           this.changeRemarkIng = false;
+          this.focusId = { x: -1, y: -1 };
         });
       } else {
         this.changeRemarkIng = false;
         e.value = res.remarks;
+        this.focusId = { x: -1, y: -1 };
       }
     },
     resetActiveId() {
@@ -125,14 +154,113 @@ export default {
     },
     clickStudyHandle(study, activeid) {
       if (!this.changeRemarkIng) {
+        // flag 表示数据是否需要进行更新
+        let updateArr = [];
         this.activeId = activeid;
-        this.$emit("seriesActive", study.series);
-        // 活动study的id变为-1
+        study.series.forEach(el => {
+          // 如果不等于5 表示还有series在processing中 所以需要定时更新数据
+          if (el.processingStatus != 5) {
+            updateArr.push(el);
+          }
+        });
+        this.$emit("seriesActive", study.series, study.id, updateArr);
+      }
+    },
+    serachHandle() {
+      // 搜索内容
+      let searchTxt = this.searchInput;
+      if (searchTxt) {
+        this.patients = [];
+        var r = RegExp(searchTxt, "i");
+        for (var i = 0, alen = this.oPatients.length; i < alen; i++) {
+          var p = this.oPatients[i],
+            name = p.name.match(r),
+            id = p.id.toString();
+          id = id.match(r);
+          for (var j = 0, blen = p.studies.length; j < blen; j++) {
+            var s = p.studies[j],
+              date = s.date.match(r),
+              description = s.description.match(r),
+              remarks = s.remarks.match(r);
+            if (name || id || date || description || remarks) {
+              this.patients.push(p);
+              break;
+            }
+          }
+        }
+      } else {
+        this._initData();
+      }
+    },
+    sort(type) {
+      if (type == "name" && this.sortParam.sortBy == "name") {
+        // 上次排序是name 这次就是变顺序
+        this.sortParam.sortDir = !this.sortParam.sortDir;
+        this._initData();
+        this.serachHandle();
+        if (!this.sortParam.sortDir) {
+          let arr = [];
+          this.patients = this.patients.reverse();
+        }
+      } else if (type == "name" && this.sortParam.sortBy != "name") {
+        // 上次排序不是name 方向初始化 数据初始化
+        this.sortParam.sortBy = "name";
+        this.sortParam.sortDir = true;
+        this._initData();
+        this.serachHandle();
+      } else if (type == "id" && this.sortParam.sortBy == "id") {
+        this.sortParam.sortDir = !this.sortParam.sortDir;
+        if (this.sortParam.sortDir) {
+          this.patients = sortBy(this.patients, el => {
+            return el.id;
+          });
+        } else {
+          this.patients = sortBy(this.patients, el => {
+            return -el.id;
+          });
+        }
+      } else if (type == "id" && this.sortParam.sortBy != "id") {
+        this.sortParam.sortBy = "id";
+        this.sortParam.sortDir = true;
+        this.patients = sortBy(this.patients, el => {
+          return el.id;
+        });
+      } else if (
+        type == "uploadTime" &&
+        this.sortParam.sortBy == "uploadTime"
+      ) {
+        this.sortParam.sortDir = !this.sortParam.sortDir;
+        if (this.sortParam.sortDir) {
+          this.patients = sortBy(this.patients, el => {
+            /**
+             * 这里排序有点问题
+             *
+             */
+            let time = new Date(el.studies[0].uploadTime);
+            return time;
+          });
+        } else {
+          this.patients = sortBy(this.patients, el => {
+            /**
+             * 这里排序有点问题
+             *
+             */
+            let time = new Date(el.studies[0].uploadTime);
+            return -time;
+          });
+        }
+      } else if (
+        type == "uploadTime" &&
+        this.sortParam.sortBy != "uploadTime"
+      ) {
+        this.sortParam.sortBy = "uploadTime";
+        this.sortParam.sortDir = true;
+        this.patients = sortBy(this.patients, el => {
+          let time = new Date(el.studies[0].uploadTime);
+          return time;
+        });
       }
     }
-  },
-  mounted() {
-    console.log(this.patients);
   },
   components: {
     Scroll
@@ -194,7 +322,7 @@ export default {
   &__content {
     position: absolute;
     width: 100%;
-    top: 167px;
+    top: 254px;
     left: 0;
     bottom: 0;
   }
@@ -322,8 +450,7 @@ export default {
     &__remark {
       position: relative;
       font-size: 30px;
-      line-height: 50px;
-      padding-top: 22px;
+      padding-top: 16px;
       display: flex;
       flex-flow: row nowrap;
       justify-content: space-between;
@@ -333,26 +460,31 @@ export default {
         width: 100px;
       }
       &-txt {
-        height: 50px;
+        height: 74px;
         flex: 1 1 auto;
         position: relative;
       }
-      &-remind {
-        color: #dfdfdf;
-      }
       &-input {
         position: absolute;
+        text-indent: 10px;
+        line-height: 56px;
         left: 0;
         top: 0;
         width: 100%;
-        border: none;
+        border: 2px solid #fff;
         background-color: transparent;
         height: 100%;
         color: #999;
+        border-radius: 6px;
+        &:focus {
+          background-color: #e3e6e6;
+          border: 2px solid #e6a118;
+        }
       }
       &-btn {
         height: 34px;
-        width: 38px;
+        width: 68px;
+        padding-left: 30px;
       }
     }
   }
