@@ -80,7 +80,8 @@ export default {
   },
   methods: {
     _initSeries() {
-      this.series = cloneObj(this.oSeries);
+      // this.series = cloneObj(this.oSeries);
+      this.series = this.oSeries;
     },
     getCurseries(series, series_id) {
       // 点击series

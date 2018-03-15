@@ -58,7 +58,8 @@ export default {
   },
   methods: {
     _initData() {
-      this.series = cloneObj(this.curSeries);
+      this.series = this.curSeries;
+      // this.series = cloneObj(this.curSeries);
     },
     showHandle(flag = true) {
       this.show = flag;

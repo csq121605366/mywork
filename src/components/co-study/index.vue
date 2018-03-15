@@ -117,7 +117,8 @@ export default {
   },
   methods: {
     _initData() {
-      this.patients = cloneObj(this.oPatients);
+      // this.patients = cloneObj(this.oPatients);
+      this.patients = this.oPatients;
     },
     remarkOnFocus(res, x, y) {
       this.focusId = { x, y };
@@ -360,7 +361,7 @@ export default {
     padding: 0 22px;
   }
   &__info {
-    padding: 10px 0;
+    padding: 10px 0 0 0;
     border-bottom: 1px solid #d6d8da;
   }
   .study__info__wrap:last-child .study__info {
@@ -450,7 +451,8 @@ export default {
     &__remark {
       position: relative;
       font-size: 30px;
-      padding-top: 16px;
+      padding-top: 20px;
+      height: 100px;
       display: flex;
       flex-flow: row nowrap;
       justify-content: space-between;
@@ -460,7 +462,7 @@ export default {
         width: 100px;
       }
       &-txt {
-        height: 74px;
+        height: 60px;
         flex: 1 1 auto;
         position: relative;
       }
