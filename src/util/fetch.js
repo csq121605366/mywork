@@ -1,14 +1,17 @@
 import axios from 'axios'
-
+import MessageBox from '@/extend/message';
+import Qs from 'qs';
 // 创建axios实例
+
 const service = axios.create({
-    // baseURL: 'http://192.168.199.136/api', // api的base_url
-    baseURL: SERVERDOMAIN, // api的base_url
+    // baseURL: SERVERDOMAIN, // api的base_url baseURL: process.env.NODE_ENV ==
+    // 'development'     ? SERVERDOMAIN     : '', // api的base_url
+    baseURL: 'https://106.15.103.194',
     timeout: 5000,
-    withCredentials: true,
     headers: {
         'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
     },
+    withCredentials: true,
     // 发送请求前处理request的数据
     transformRequest: [function (data) {
             var str = [];
@@ -16,6 +19,8 @@ const service = axios.create({
                 str.push(encodeURIComponent(p) + "=" + encodeURIComponent(data[p]));
             }
             return str.join("&");
+            // data = Qs.stringify(data);
+            return data;
         }
     ]
 })
@@ -28,7 +33,6 @@ service
         // Do something before request is sent if (store.getters['user/token']) {
         // config.headers['X-Token'] = store.getters['user/token'] //
         // 让每个请求携带token--['X-Token']为自定义key 请根据实际情况自行修改 }
-
         return config
     }, error => {
         // Do something with request error
@@ -40,7 +44,9 @@ service
 service
     .interceptors
     .response
-    .use(response => response.data,
+    .use(response => {
+        return response.data
+    },
     /**
    * 下面的注释为通过response自定义code来标示请求状态，当code返回如下情况为权限有问题，登出并返回到登录页
    * 如通过xmlhttprequest 状态码标识 逻辑可写在下面error中
@@ -55,7 +61,8 @@ service
     // 为了重新实例化vue-router对象 避免bug           });         }) }       return
     // Promise.reject(error);     } else {       return response.data;     }
     error => {
-        return Promise.reject(error)
+        MessageBox({type: 'error', message: '请求出现故障'})
+        return Promise.reject(error);
     })
 
 export default service

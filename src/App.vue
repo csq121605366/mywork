@@ -1,9 +1,9 @@
 <template>
   <div id="app">
-    <co-header @backHandle="backHandle"></co-header>
-    <co-study v-if="oPatients" ref="studyRef" @studyNeedsUpdate="studyNeedsUpdate" @seriesActive="seriesActive" :oPatients="oPatients"></co-study>
+    <co-header :userInfo="userInfo" @backHandle="backHandle"></co-header>
+    <co-study v-if="oPatients" ref="studyRef"  @seriesActive="seriesActive" :oPatients="oPatients"></co-study>
     <transition name="slideright">
-      <co-series v-if="seriesShow" @seriesNeedsUpate="seriesNeedsUpate" @getCurseries="_getCurseries" :oSeries="oSeries"></co-series>
+      <co-series v-if="seriesShow"  @getCurseries="_getCurseries" :oSeries="oSeries"></co-series>
     </transition>
       <co-images v-if="curSeries" :userInfo="userInfo" @imageShow="imageShow" :studyActive="studyActive" :curSeries="curSeries" :imgIY="imgIY"></co-images>
     <co-layer :isShow="isShow" @changeType="changeLayerType">
@@ -20,7 +20,8 @@ import CoStudy from "@/components/co-study";
 import CoLayer from "@/components/co-layer";
 import CoImages from "@/components/co-images";
 import { login, getUserStatus, getData, mGetData, checkStatus } from "@/api";
-import { userAgent } from "@/util/tool";
+import { userAgent, IsPC } from "@/util/tool";
+import $ from 'jquery';
 
 export default {
   name: "app",
@@ -32,6 +33,12 @@ export default {
     CoImages
   },
   created() {
+    if (IsPC() == true) {
+      var url_01 = window.location.href;
+      var para = url_01.split("?")[1];
+      if (para != null) window.location.href = "../datalist/index.html?" + para;
+      else window.location.href = "../datalist/index.html";
+    }
     if (!userAgent()) {
       this.isShow = true;
     }
@@ -51,8 +58,6 @@ export default {
       message: ""
     };
   },
-  watch: {},
-  mounted() {},
   methods: {
     backHandle: function() {
       // if (this.seriesList != null) {
@@ -64,15 +69,20 @@ export default {
       // }
       // 重置活动id
       // this.$refs.studyRef.resetActiveId();
-      console.log("背景");
-      this.seriesShow = false;
+
+      if (this.oSeries) {
+        this.seriesShow = false;
+        this.oSeries = null;
+      } else {
+        window.location.href = "https://www.rayplus.net/login/index.html";
+      }
     },
     gotoLogin() {
       // 失败就重新登陆
       window.location.href = "https://www.rayplus.net/login/index.html";
     },
     changeLayerType(res) {
-      console.log(res);
+      return;
     },
     _login() {
       return new Promise((resolve, reject) => {
@@ -110,12 +120,11 @@ export default {
       });
     },
     _getData() {
+      // 获取数据
       return new Promise((resolve, reject) => {
         getData().then(res => {
           if (res.code && res.code == 1) {
             this.oPatients = res.patients;
-            // this.oPatients[0].birth = new Date().getSeconds();
-            // console.log(this.oPatients[0].birth);
             resolve();
           } else {
             reject();
@@ -140,8 +149,9 @@ export default {
       });
     },
     _initData() {
-      this._login()
-        .then(() => {
+      // 初始化数据
+      // this._login()
+      //   .then(() => {
           // 登陆成功
           this._getUserStatus()
             .then(res => {
@@ -156,24 +166,15 @@ export default {
               // 获取用户状态失败
               this.gotoLogin();
             });
-        })
-        .catch(() => {
-          // 登陆不成功
-          this.$message({
-            message: "登录失败",
-            type: "error",
-            durtion: 3e6
-          });
-        });
-    },
-    seriesNeedsUpate() {
-      // 数据自动更新 目前不用
-      // this._getCurseries();
-      console.log('seriesNeedUpate')
-      
-    },
-    studyNeedsUpdate(){
-      console.log('studyNeedsUpdate')
+        // })
+        // .catch(() => {
+        //   // 登陆不成功
+        //   this.$message({
+        //     message: "登录失败",
+        //     type: "error",
+        //     durtion: 3e6
+        //   });
+        // });
     },
     seriesActive(series, studyActive, updateArr) {
       this.seriesShow = true;

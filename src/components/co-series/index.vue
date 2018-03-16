@@ -35,13 +35,13 @@
               </li>
             </ul>
             <div class="series__list__remark">
-              <span class="series__list__remark-label">备注&nbsp;:&nbsp;</span>
+              <span class="series__list__remark-label" :class="item.visible?'visible':''">备注&nbsp;:&nbsp;</span>
               <div class="series__list__remark-txt">
                 <input class="study__list__remark-input" type="text" v-model="item.remarks" ref="remarksInput" disabled :value="item.remarks.length?item.remarks:'点击右侧编辑图标，添加备注信息'" 
-                @blur.self.prevent="changeSeriesRemarks(item,index)">
+                @blur.stop.prevent="changeSeriesRemarks(item,index)">
               </div>
-              <img v-if="focusId!=index" @click.self.prevent="remarkOnFocus(item,index)" class="series__list__remark-btn" src="./remark.png" />
-              <img v-else @click.self.prevent="changeSeriesRemarks(item,index)" class="series__list__remark-btn" src="./qd.png" alt="">
+              <img v-if="focusId!=index" @click.stop.prevent="remarkOnFocus(item,index)" class="series__list__remark-btn" src="./remark.png" />
+              <img v-else @click.stop.prevent="changeSeriesRemarks(item,index)" class="series__list__remark-btn" src="./qd.png" alt="">
             </div>
           </li>
         </ul>
@@ -95,10 +95,17 @@ export default {
       this.changeRemarkIng = true;
       this.focusId = index;
       let e = this.$refs.remarksInput[index];
+      if (e.getBoundingClientRect) {
+        let scrolltop = e.getBoundingClientRect().bottom - 240;
+        this.$refs.scroll.scrollBy(0, -scrolltop, 1);
+      }
+      // e.scrollIntoView(true);
+      // e.scrollIntoViewIfNeeded();
       e.disabled = false;
       e.focus();
     },
     changeSeriesRemarks(res, index) {
+      // 改变seies值
       let e = this.$refs.remarksInput[index];
       e.disabled = true;
       if (e.value != "") {
@@ -112,12 +119,14 @@ export default {
           }
           this.changeRemarkIng = true;
           this.focusId = -1;
-          this.$emit('seriesNeedsUpdate');
         });
       } else {
-        e.value = res.remarks;
-        this.changeRemarkIng = true;
-        this.focusId = -1;
+        // 设置定时器解决300秒问题
+        setTimeout(() => {
+          e.value = res.remarks;
+          this.changeRemarkIng = true;
+          this.focusId = -1;
+        }, 300);
       }
     },
     seriesShowHideReq(req, flag) {
@@ -148,11 +157,13 @@ export default {
     seriesShowHide(req, flag) {
       this.seriesShowHideReq(req, flag)
         .then(() => {
-          console.log("操作成功");
           req.visible = flag ? 1 : 0;
         })
         .catch(() => {
-          console.log("操作失败");
+          this.$message({
+            type: "warning",
+            message: "操作失败!"
+          });
         });
     }
   },
@@ -245,14 +256,18 @@ export default {
     &__eye {
       display: inline-block;
       vertical-align: middle;
-      max-width: 44px;
+      width: 44px;
     }
     &__order {
       font-size: 30px;
       height: 66px;
       line-height: 66px;
+      color: #999;
       &.visible {
         color: #ea7400;
+      }
+      span {
+        margin-left: 30px;
       }
     }
     &__remark {
@@ -267,6 +282,10 @@ export default {
       color: #666666;
       &-label {
         width: 100px;
+        color: #999;
+        &.visible {
+          color: #666;
+        }
       }
       &-txt {
         height: 74px;
@@ -295,7 +314,7 @@ export default {
         }
       }
       &-btn {
-        height: 34px;
+        height: 44px;
         width: 68px;
         padding-left: 30px;
       }

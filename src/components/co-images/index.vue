@@ -105,7 +105,7 @@ export default {
   position: absolute;
   width: 100%;
   height: 100%;
-  z-index: 11;
+  z-index: 13;
   left: 0;
   top: 0;
   background-color: rgba(0, 0, 0, 0.7);

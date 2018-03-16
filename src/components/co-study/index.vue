@@ -27,7 +27,7 @@
         </li>
     </ul>
     <section class="study__content">
-      <scroll class="study__scroll">
+      <scroll ref="scroll" class="study__scroll">
         <ul v-if="patients" class="study__list">
           <li v-for="(item,x) in patients" :key="x" class="study__list__item">
             <div class="study__info__wrap study__base__info__wrap">
@@ -65,11 +65,11 @@
                 <span class="study__list__remark-label">备注&nbsp;:&nbsp;</span>
                 <div class="study__list__remark-txt">
                   <input class="study__list__remark-input" type="text" v-model="ceil.remarks" :ref="'remarksInput-'+x+'-'+y" disabled placeholder="点击右侧编辑图标，添加备注信息"
-                    @blur.self.prevent="changeStudyRemarks(ceil,x,y)"
+                    @blur.stop.prevent="changeStudyRemarks(ceil,x,y)"
                   >
                 </div>
-                <img v-if="focusId.x!=x||focusId.y!=y" @click.self="remarkOnFocus(ceil,x,y)" class="study__list__remark-btn" src="./remark.png" />
-                <img v-else @click.self.prevent="changeStudyRemarks(ceil,x,y)" class="study__list__remark-btn" src="./qd.png" alt="">
+                <img v-if="focusId.x!=x||focusId.y!=y" @click.stop.prevent="remarkOnFocus(ceil,x,y)" class="study__list__remark-btn" src="./remark.png" />
+                <img v-else @click.stop.prevent="changeStudyRemarks(ceil,x,y)" class="study__list__remark-btn" src="./qd.png" alt="">
               </div>
             </div>
             </div>
@@ -85,6 +85,7 @@ import Scroll from "@/base/scroll";
 import { changeremarks } from "@/api";
 import { cloneObj } from "@/util/tool.js";
 import sortBy from "lodash/sortBy";
+import * as pinyin from "tiny-pinyin";
 
 export default {
   props: {
@@ -113,7 +114,6 @@ export default {
   },
   mounted() {
     this._initData();
-    console.log(this.patients);
   },
   methods: {
     _initData() {
@@ -124,6 +124,13 @@ export default {
       this.focusId = { x, y };
       this.changeRemarkIng = true;
       let e = this.$refs["remarksInput-" + x + "-" + y][0];
+
+      if (e.getBoundingClientRect) {
+        let scrolltop = e.getBoundingClientRect().bottom - 240;
+        this.$refs.scroll.scrollBy(0, -scrolltop, 1);
+      }
+      // e.scrollIntoView(true);
+      // e.scrollIntoViewIfNeeded();
       e.disabled = false;
       e.focus();
     },
@@ -131,7 +138,7 @@ export default {
       let e = this.$refs["remarksInput-" + x + "-" + y][0];
       // 将输入框变为不可用
       e.disabled = true;
-      if (e.value != "" ) {
+      if (e.value != "") {
         let data = {
           studyid: res.id,
           remarks: e.value
@@ -140,14 +147,16 @@ export default {
           if (response.r) {
             alert("备注修改失败！");
           }
-          this.$emit("studyNeedsUpdate");
           this.changeRemarkIng = false;
           this.focusId = { x: -1, y: -1 };
         });
       } else {
-        this.changeRemarkIng = false;
-        e.value = res.remarks;
-        this.focusId = { x: -1, y: -1 };
+        // 设置定时器解决300秒问题
+        setTimeout(() => {
+          this.changeRemarkIng = false;
+          e.value = res.remarks;
+          this.focusId = { x: -1, y: -1 };
+        }, 300);
       }
     },
     resetActiveId() {
@@ -190,6 +199,7 @@ export default {
           }
         }
       } else {
+        // 如果为空 则初始化数据
         this._initData();
       }
     },
@@ -199,9 +209,18 @@ export default {
         this.sortParam.sortDir = !this.sortParam.sortDir;
         this._initData();
         this.serachHandle();
-        if (!this.sortParam.sortDir) {
-          let arr = [];
-          this.patients = this.patients.reverse();
+        if (this.sortParam.sortDir) {
+          // 正序
+          this.patients = this.patients.sort(function(a, b) {
+            let re = a.name.localeCompare(b.name);
+            return re;
+          });
+        } else {
+          // 倒序
+          this.patients = this.patients.sort(function(a, b) {
+            let re = a.name.localeCompare(b.name);
+            return -re;
+          });
         }
       } else if (type == "name" && this.sortParam.sortBy != "name") {
         // 上次排序不是name 方向初始化 数据初始化
@@ -209,6 +228,11 @@ export default {
         this.sortParam.sortDir = true;
         this._initData();
         this.serachHandle();
+        // 正序
+        this.patients = this.patients.sort(function(a, b) {
+          let re = a.name.localeCompare(b.name);
+          return re;
+        });
       } else if (type == "id" && this.sortParam.sortBy == "id") {
         this.sortParam.sortDir = !this.sortParam.sortDir;
         if (this.sortParam.sortDir) {
@@ -235,7 +259,7 @@ export default {
           this.patients = sortBy(this.patients, el => {
             /**
              * 这里排序有点问题
-             *
+             * 目前是按照第一个studies来排序
              */
             let time = new Date(el.studies[0].uploadTime);
             return time;
@@ -244,7 +268,7 @@ export default {
           this.patients = sortBy(this.patients, el => {
             /**
              * 这里排序有点问题
-             *
+             * 目前是按照第一个studies来排序
              */
             let time = new Date(el.studies[0].uploadTime);
             return -time;
@@ -315,9 +339,26 @@ export default {
     }
     &__txt {
       border: none;
+      font-size: 30px;
       text-indent: 10px;
+      color: #999;
       flex: 1 1 auto;
       background-color: #e3e6e6;
+      &::-webkit-input-placeholder {
+        color: #999;
+      }
+      &::-moz-placeholder {
+        /* Mozilla Firefox 19+ */
+        color: #999;
+      }
+      &:-moz-placeholder {
+        /* Mozilla Firefox 4 to 18 */
+        color: #999;
+      }
+      &:-ms-input-placeholder {
+        /* Internet Explorer 10-11 */
+        color: #999;
+      }
     }
   }
   &__content {
@@ -374,7 +415,7 @@ export default {
     }
     &__name {
       line-height: 42px;
-      padding-bottom: 14px;
+      padding-bottom: 11px;
       font-size: 30px;
       color: #e48f00;
       p {
@@ -386,6 +427,7 @@ export default {
     &__other {
       font-size: 28px;
       color: #999;
+      padding-bottom: 20px;
       li {
         line-height: 40px;
         display: flex;
@@ -484,8 +526,8 @@ export default {
         }
       }
       &-btn {
-        height: 34px;
-        width: 68px;
+        height: 44px;
+        width: 78px;
         padding-left: 30px;
       }
     }
