@@ -54,6 +54,7 @@
 import Scroll from "@/base/scroll";
 import { changeremarks, seriesHide, seriesShow } from "@/api";
 import { cloneObj } from "@/util/tool.js";
+import store from "store";
 export default {
   props: {
     oSeries: {
@@ -62,10 +63,11 @@ export default {
     }
   },
   data() {
+    let sc = store.get("activeGroup");
     return {
       showHide: false,
       series: "",
-      seriesActiveId: -1,
+      seriesActiveId: sc && sc.ACTIVE ? sc.SID : -1,
       focusId: -1,
       changeRemarkIng: false // 判断是否正在改变备注
     };

@@ -21,7 +21,7 @@ import CoLayer from "@/components/co-layer";
 import CoImages from "@/components/co-images";
 import { login, getUserStatus, getData, mGetData, checkStatus } from "@/api";
 import { userAgent, IsPC } from "@/util/tool";
-import $ from 'jquery';
+import store from "store";
 
 export default {
   name: "app",
@@ -33,7 +33,7 @@ export default {
     CoImages
   },
   created() {
-    if (IsPC() == true) {
+    if (IsPC()) {
       var url_01 = window.location.href;
       var para = url_01.split("?")[1];
       if (para != null) window.location.href = "../datalist/index.html?" + para;
@@ -73,6 +73,7 @@ export default {
       if (this.oSeries) {
         this.seriesShow = false;
         this.oSeries = null;
+        store.set("activeGroup");
       } else {
         window.location.href = "https://www.rayplus.net/login/index.html";
       }
@@ -148,41 +149,68 @@ export default {
         }
       });
     },
+    _active() {
+      let activeGroup = store.get("activeGroup");
+      this.oPatients.forEach(x => {
+        x.studies.forEach(y => {
+          if (y.id == activeGroup.STUDYID) {
+            y.series.forEach(z => {
+              if (z.id == activeGroup.SID) {
+                // 此时说明有活动页 active变为ture
+                let s = store.get("activeGroup");
+                s.ACTIVE = true;
+                store.set("activeGroup", s);
+                this.seriesActive(y.series, x.id);
+              }
+            });
+          }
+        });
+      });
+    },
     _initData() {
       // 初始化数据
-      // this._login()
-      //   .then(() => {
+      this._login()
+        .then(() => {
           // 登陆成功
           this._getUserStatus()
             .then(res => {
               // 获取用户状态
               this._getData()
-                .then(() => {})
+                .then(() => {
+                  // 数据获取成功 检测是否有activeGroup
+                  this._active();
+                })
                 .catch(() => {
-                  this.gotoLogin();
+                  // this.gotoLogin();
                 });
             })
             .catch(err => {
               // 获取用户状态失败
               this.gotoLogin();
             });
-        // })
-        // .catch(() => {
-        //   // 登陆不成功
-        //   this.$message({
-        //     message: "登录失败",
-        //     type: "error",
-        //     durtion: 3e6
-        //   });
-        // });
+        })
+        .catch(() => {
+          // 登陆不成功
+          this.$message({
+            message: "登录失败",
+            type: "error",
+            durtion: 3e6
+          });
+        });
     },
-    seriesActive(series, studyActive, updateArr) {
+    seriesActive(series, studyActive) {
       this.seriesShow = true;
       this.oSeries = series;
       this.studyActive = studyActive;
-      this.updateArr = updateArr;
-      if (updateArr.length) {
-        for (var i = 0, len = updateArr.length; i < len; i++) {
+      this.updateArr = [];
+      series.forEach(el => {
+        // 如果不等于5 表示还有series在processing中 所以需要定时更新数据
+        if (el.processingStatus != 5) {
+          this.updateArr.push(el);
+        }
+      });
+      if (this.updateArr.length) {
+        for (var i = 0, len = this.updateArr.length; i < len; i++) {
           this._checkStatus(this.updateArr[i]);
         }
       }

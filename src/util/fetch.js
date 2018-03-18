@@ -4,9 +4,9 @@ import Qs from 'qs';
 // 创建axios实例
 
 const service = axios.create({
-    // baseURL: SERVERDOMAIN, // api的base_url baseURL: process.env.NODE_ENV ==
+    baseURL: SERVERDOMAIN, // api的base_url baseURL: process.env.NODE_ENV ==
     // 'development'     ? SERVERDOMAIN     : '', // api的base_url
-    baseURL: 'https://106.15.103.194',
+    // baseURL: 'https://106.15.103.194',
     timeout: 5000,
     headers: {
         'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'

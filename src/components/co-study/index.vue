@@ -85,8 +85,6 @@ import Scroll from "@/base/scroll";
 import { changeremarks } from "@/api";
 import { cloneObj } from "@/util/tool.js";
 import sortBy from "lodash/sortBy";
-import * as pinyin from "tiny-pinyin";
-
 export default {
   props: {
     oPatients: {
@@ -165,15 +163,8 @@ export default {
     clickStudyHandle(study, activeid) {
       if (!this.changeRemarkIng) {
         // flag 表示数据是否需要进行更新
-        let updateArr = [];
         this.activeId = activeid;
-        study.series.forEach(el => {
-          // 如果不等于5 表示还有series在processing中 所以需要定时更新数据
-          if (el.processingStatus != 5) {
-            updateArr.push(el);
-          }
-        });
-        this.$emit("seriesActive", study.series, study.id, updateArr);
+        this.$emit("seriesActive", study.series, study.id);
       }
     },
     serachHandle() {

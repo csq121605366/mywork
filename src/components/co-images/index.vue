@@ -26,6 +26,7 @@
 import Scroll from "@/base/scroll";
 import { getRead } from "@/api";
 import { cloneObj } from "@/util/tool.js";
+import store from "store";
 export default {
   props: {
     studyActive: {
@@ -75,6 +76,12 @@ export default {
           type: "warning"
         });
       } else {
+        // 存储seriesActiveId 用于页面跳转回来的时候的显示
+        store.set("activeGroup", {
+          SID: this.series.id,
+          STUDYID: this.studyActive,
+          ACTIVE: false
+        });
         let urlData = window.btoa(
           "SID=" + this.series.id + "&studyId=" + this.studyActive
         );
@@ -84,6 +91,12 @@ export default {
     _getRead(id) {
       getRead({ number: 1, "seriesId[0]": id }).then(res => {
         if (res.code == 1) {
+          // 存储seriesActiveId 用于页面跳转回来的时候的显示
+          store.set("activeGroup", {
+            SID: this.series.id,
+            STUDYID: this.studyActive,
+            ACTIVE: false
+          });
           let urlData = window.btoa(
             "SID=" + this.series.id + "&studyId=" + this.studyActive
           );
