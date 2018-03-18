@@ -6,7 +6,7 @@ export function login(data) {
 export function getUserStatus() {
     return fetch({url: '/datalist/getUserStatus.php', method: 'post'})
 }
-
+ 
 export function getData() {
     return fetch({url: '/datalist/getData.php', method: 'get'})
 }
