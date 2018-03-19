@@ -256,7 +256,7 @@ body {
 .slideleft-leave-active,
 .slideright-enter-active,
 .slideright-leave-active {
-  transition: all 1s;
+  transition: all .6s;
 }
 .slideleft-enter,
 .slideleft-leave-to,

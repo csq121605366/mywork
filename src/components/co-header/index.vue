@@ -21,21 +21,22 @@
                 <li class="droplist__userinfo__store">{{userInfo.space}}</li>
               </ul>
             </li>
-            <li class="droplist__link">
+            {{info}}
+            <li @touchstart.capture="droplistTouchStart('link1')" @touchend.capture="droplistTouchEnd('link1')" :class="dropTouchActiveId=='link1'?'active':''" class="droplist__link">
               <img src="./11_06.png" alt="">
-              <a  @click="droplistShow=false" href="../per_mobile/index.html">账户设置</a>
+              <a  @click.self="droplistShow=false" href="../per_mobile/index.html">账户设置</a>
             </li>
-            <li class="droplist__link">
+            <li @touchstart.capture="droplistTouchStart('link2')" @touchend.capture="droplistTouchEnd('link3')" :class="dropTouchActiveId=='link2'?'active':''" class="droplist__link">
               <img src="./11_09.png" alt="">
               <a  @click="droplistShow=false" href="../helpcenter_mobile/index.html">帮助中心</a>
             </li>
-            <li class="droplist__link">
+            <li @touchstart.capture="droplistTouchStart('link3')" @touchend.capture="droplistTouchEnd('link3')" :class="dropTouchActiveId=='link3'?'active':''" class="droplist__link">
               <img src="./11_11.png" alt="">
               <a @click="droplistShow=false" href="https://www.rayplus.net/reg_mobile/legal_agreement_mobile.html">服务协议</a>
             </li>
-            <li class="droplist__link">
+            <li @touchstart.capture="droplistTouchStart('link4')" @touchend.capture="droplistTouchEnd('link4')" :class="dropTouchActiveId=='link4'?'active':''" class="droplist__link">
               <img src="./11_12.png" alt="">
-              <a @click="droplistShow=false" href="https://www.rayplus.net/outside/logout.php">退出登录</a>
+              <a @click.prevent="droplistShow=false" href="https://www.rayplus.net/outside/logout.php">退出登录</a>
             </li>
         </ul>
     </transition>
@@ -54,7 +55,9 @@ export default {
   },
   data() {
     return {
-      droplistShow: false
+      droplistShow: false,
+      info: "",
+      dropTouchActiveId: null
     };
   },
   watch: {
@@ -67,6 +70,12 @@ export default {
     }
   },
   methods: {
+    droplistTouchStart(e) {
+      this.dropTouchActiveId = e;
+    },
+    droplistTouchEnd(e) {
+      this.dropTouchActiveId = null;
+    },
     backHandle() {
       this.$emit("backHandle");
     },
@@ -83,7 +92,7 @@ export default {
 .header {
   position: absolute;
   left: 0;
-  top: 0;
+  top: 1px;
   z-index: 12;
   width: 100%;
   height: 88px;
@@ -111,16 +120,18 @@ export default {
     height: 474px;
     width: 296px;
     color: #4ebafe;
-    padding-left: 26px;
-    padding-top: 25px;
+    // padding-left: 26px;
+    // padding-top: 25px;
     border-radius: 0 0 16px 16px;
-    background-color: rgba(49, 90, 140, 0.8);
-
+    background-color: rgba(49, 90, 140, 0.9);
     .droplist {
       &__userinfo {
         display: flex;
         flex-flow: row nowrap;
         padding-bottom: 34px;
+        padding-top: 25px;
+        padding-left: 26px;
+        background-color: rgba(49, 90, 140, 0.15);
         &__avatar {
           height: 70px;
           width: 70px;
@@ -141,9 +152,15 @@ export default {
         float: left;
         width: 100%;
         font-size: 30px;
+        padding-left: 26px;
+        padding-top: 15px;
+        padding-bottom: 15px;
         line-height: 50px;
         overflow: hidden;
-        margin: 15px 0;
+
+        &.active {
+          background-color: rgba(49, 90, 140, 0.05);
+        }
         cursor: pointer;
         a {
           color: #4ebafe;
@@ -175,7 +192,7 @@ export default {
 
 .drop-enter-active,
 .drop-leave-active {
-  transition: all 1s;
+  transition: all .6s;
 }
 .drop-enter,
 .drop-leave-to {

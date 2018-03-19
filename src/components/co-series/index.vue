@@ -97,10 +97,11 @@ export default {
       this.changeRemarkIng = true;
       this.focusId = index;
       let e = this.$refs.remarksInput[index];
-      if (e.getBoundingClientRect) {
-        let scrolltop = e.getBoundingClientRect().bottom - 240;
-        this.$refs.scroll.scrollBy(0, -scrolltop, 1);
-      }
+      // 注释的内容为输入框focus时的页面滚动应为有bug所以暂时不用
+      // if (e.getBoundingClientRect) {
+      //   let scrolltop = e.getBoundingClientRect().bottom - 240;
+      //   this.$refs.scroll.scrollBy(0, -scrolltop, 1);
+      // }
       // e.scrollIntoView(true);
       // e.scrollIntoViewIfNeeded();
       e.disabled = false;

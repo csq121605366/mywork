@@ -2,8 +2,9 @@
   <ul  v-cloak class="study">
     <div class="study__header">
       <div class="study__search">
-        <span class="study__search__icon rayplus-icons">search</span>
+        <img @click.stop.prevent="serachHandle" class="study__search__icon" src="./ss_06.png" />
         <input class="study__search__txt" v-model="searchInput" @change.stop.prevent="serachHandle" placeholder="姓名 / ID / 日期 / 描述 / 备注" type="text">
+        <img @click.stop.prevent="serachResetHandle" class="study__search__icon p-8" src="./ss_03.png" />
       </div>
     </div>
     <ul class="study__sort">
@@ -122,11 +123,11 @@ export default {
       this.focusId = { x, y };
       this.changeRemarkIng = true;
       let e = this.$refs["remarksInput-" + x + "-" + y][0];
-
-      if (e.getBoundingClientRect) {
-        let scrolltop = e.getBoundingClientRect().bottom - 240;
-        this.$refs.scroll.scrollBy(0, -scrolltop, 1);
-      }
+      // 注释的内容为输入框focus时的页面滚动应为有bug所以暂时不用
+      // if (e.getBoundingClientRect) {
+      //   let scrolltop = e.getBoundingClientRect().bottom - 140;
+      //   this.$refs.scroll.scrollBy(0, -scrolltop, 1);
+      // }
       // e.scrollIntoView(true);
       // e.scrollIntoViewIfNeeded();
       e.disabled = false;
@@ -166,6 +167,10 @@ export default {
         this.activeId = activeid;
         this.$emit("seriesActive", study.series, study.id);
       }
+    },
+    serachResetHandle() {
+      this.searchInput = "";
+      this._initData();
     },
     serachHandle() {
       // 搜索内容
@@ -322,33 +327,36 @@ export default {
     background-color: #e3e6e6;
     &__icon {
       flex: 0 1 auto;
-      height: 25px;
+      height: 45px;
       font-size: 28px;
       width: 48px;
-      padding: 0 10px;
+      padding: 10px 10px;
       background-color: transparent;
+      &.p-8 {
+        padding-right: 8px;
+      }
     }
     &__txt {
       border: none;
       font-size: 30px;
       text-indent: 10px;
-      color: #999;
+      color: #666;
       flex: 1 1 auto;
       background-color: #e3e6e6;
       &::-webkit-input-placeholder {
-        color: #999;
+        color: #666;
       }
       &::-moz-placeholder {
         /* Mozilla Firefox 19+ */
-        color: #999;
+        color: #666;
       }
       &:-moz-placeholder {
         /* Mozilla Firefox 4 to 18 */
-        color: #999;
+        color: #666;
       }
       &:-ms-input-placeholder {
         /* Internet Explorer 10-11 */
-        color: #999;
+        color: #666;
       }
     }
   }
@@ -374,8 +382,9 @@ export default {
     display: flex;
     flex-flow: row nowrap;
     text-align: center;
-    justify-content: space-around;
+    justify-content: space-between;
     align-items: center;
+    padding: 0 30px;
     li.active {
       color: #e68f04;
     }
@@ -401,7 +410,6 @@ export default {
   }
   &__base {
     &__info__wrap {
-      border: 4px solid #f0f0f0;
       background-color: #f0f0f0;
     }
     &__name {
@@ -484,8 +492,7 @@ export default {
     &__remark {
       position: relative;
       font-size: 30px;
-      padding-top: 20px;
-      height: 100px;
+      height: 76px;
       display: flex;
       flex-flow: row nowrap;
       justify-content: space-between;
