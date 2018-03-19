@@ -1,41 +1,40 @@
 <template>
-<div class="header__wrap">
-	<header class="header">
-    <div class="header__left center">
-      <img @click="backHandle" class="header__icon" src="./back.png" alt="">
+<div class="header">
+	<header class="header__wrap">
+    <div @click="backHandle" class="header__left center">
+      <img  class="header__icon" src="./images/back.png" alt="">
     </div>
     <div class="header__center center">
-      <img class="header__icon" src="./logo.png" alt="">
+      <img class="header__icon" src="./images/logo.png" alt="">
     </div>
     <div @click.stop.prevent="droplistShow=!droplistShow" class="header__right center">
-      <img class="header__icon" src="./people.png" alt="">
+      <img class="header__icon" src="./images/people.png" alt="">
     </div>
   </header>
   <div v-show="droplistShow" class="droplist__layer"></div>
     <transition name="drop">
           <ul class="header__droplist" v-show="droplistShow">
             <li class="droplist__userinfo">
-              <img class="droplist__userinfo__avatar" src="./11_03.png" alt="">
+              <img class="droplist__userinfo__avatar" src="./images/11_03.png" alt="">
               <ul v-if="userInfo" class="droplist__userinfo__info">
                 <li class="droplist__userinfo__name">{{userInfo.name}}</li>
                 <li class="droplist__userinfo__store">{{userInfo.space}}</li>
               </ul>
             </li>
-            {{info}}
             <li @touchstart.capture="droplistTouchStart('link1')" @touchend.capture="droplistTouchEnd('link1')" :class="dropTouchActiveId=='link1'?'active':''" class="droplist__link">
-              <img src="./11_06.png" alt="">
+              <img src="./images/11_06.png" alt="">
               <a  @click.self="droplistShow=false" href="../per_mobile/index.html">账户设置</a>
             </li>
             <li @touchstart.capture="droplistTouchStart('link2')" @touchend.capture="droplistTouchEnd('link3')" :class="dropTouchActiveId=='link2'?'active':''" class="droplist__link">
-              <img src="./11_09.png" alt="">
+              <img src="./images/11_09.png" alt="">
               <a  @click="droplistShow=false" href="../helpcenter_mobile/index.html">帮助中心</a>
             </li>
             <li @touchstart.capture="droplistTouchStart('link3')" @touchend.capture="droplistTouchEnd('link3')" :class="dropTouchActiveId=='link3'?'active':''" class="droplist__link">
-              <img src="./11_11.png" alt="">
+              <img src="./images/11_11.png" alt="">
               <a @click="droplistShow=false" href="https://www.rayplus.net/reg_mobile/legal_agreement_mobile.html">服务协议</a>
             </li>
             <li @touchstart.capture="droplistTouchStart('link4')" @touchend.capture="droplistTouchEnd('link4')" :class="dropTouchActiveId=='link4'?'active':''" class="droplist__link">
-              <img src="./11_12.png" alt="">
+              <img src="./images/11_12.png" alt="">
               <a @click.prevent="droplistShow=false" href="https://www.rayplus.net/outside/logout.php">退出登录</a>
             </li>
         </ul>
@@ -89,119 +88,6 @@ export default {
 </script>
 
 <style lang='scss'>
-.header {
-  position: absolute;
-  left: 0;
-  top: 1px;
-  z-index: 12;
-  width: 100%;
-  height: 88px;
-  background: rgba(49, 90, 140, 0.95);
-  display: flex;
-  flex-flow: row nowrap;
-  justify-content: space-between;
+@import "~./css/index.scss";
 
-  &__icon {
-    max-height: 46px;
-    width: auto;
-    padding: 0 20px;
-  }
-  &__left {
-  }
-  &__right {
-    position: relative;
-    cursor: pointer;
-  }
-  &__droplist {
-    position: fixed;
-    right: 30px;
-    top: 88px;
-    z-index: 11;
-    height: 474px;
-    width: 296px;
-    color: #4ebafe;
-    // padding-left: 26px;
-    // padding-top: 25px;
-    border-radius: 0 0 16px 16px;
-    background-color: rgba(49, 90, 140, 0.9);
-    .droplist {
-      &__userinfo {
-        display: flex;
-        flex-flow: row nowrap;
-        padding-bottom: 34px;
-        padding-top: 25px;
-        padding-left: 26px;
-        background-color: rgba(49, 90, 140, 0.15);
-        &__avatar {
-          height: 70px;
-          width: 70px;
-          margin-right: 14px;
-        }
-
-        &__info {
-          font-size: 28px;
-          line-height: 40px;
-        }
-        &__name {
-          color: #fff;
-        }
-        &__store {
-        }
-      }
-      &__link {
-        float: left;
-        width: 100%;
-        font-size: 30px;
-        padding-left: 26px;
-        padding-top: 15px;
-        padding-bottom: 15px;
-        line-height: 50px;
-        overflow: hidden;
-
-        &.active {
-          background-color: rgba(49, 90, 140, 0.05);
-        }
-        cursor: pointer;
-        a {
-          color: #4ebafe;
-          &:hover {
-            text-decoration: none;
-          }
-        }
-        img {
-          height: 30px;
-          width: 50px;
-          padding-right: 20px;
-          vertical-align: middle;
-        }
-      }
-    }
-  }
-}
-
-.droplist__layer {
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  z-index: 10;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  right: 0;
-}
-
-.drop-enter-active,
-.drop-leave-active {
-  transition: all .6s;
-}
-.drop-enter,
-.drop-leave-to {
-  opacity: 0;
-}
-.drop-enter {
-  transform: translateY(-100%);
-}
-.drop-leave-active {
-  transform: translateY(-100%);
-}
 </style>

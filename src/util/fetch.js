@@ -4,7 +4,7 @@ import MessageBox from '@/extend/message';
 
 const service = axios.create({
     baseURL: SERVERDOMAIN, // api的base_url baseURL: process.env.NODE_ENV ==
-    // 'development'     ? SERVERDOMAIN     : '', // api的base_url 
+    // 'development'     ? SERVERDOMAIN     : '', // api的
     // baseURL:'https://106.15.103.194',
     timeout: 5000,
     headers: {

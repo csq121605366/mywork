@@ -43,6 +43,8 @@ export default {
       this.isShow = true;
     }
     this._initData();
+
+    eruda.init();
   },
   data() {
     return {
@@ -69,7 +71,6 @@ export default {
       // }
       // 重置活动id
       // this.$refs.studyRef.resetActiveId();
-
       if (this.oSeries) {
         this.seriesShow = false;
         this.oSeries = null;
@@ -246,6 +247,7 @@ export default {
 html,
 body {
   height: 100%;
+  width: 100%;
 }
 #app {
   height: 100%;
@@ -256,7 +258,7 @@ body {
 .slideleft-leave-active,
 .slideright-enter-active,
 .slideright-leave-active {
-  transition: all .6s;
+  transition: all 0.4s;
 }
 .slideleft-enter,
 .slideleft-leave-to,
@@ -268,7 +270,7 @@ body {
   transform: translateX(+100%);
 }
 .slideright-leave-active {
-  transform: translateX(-100%);
+  transform: translateX(+100%);
 }
 .slideleft-enter {
   transform: translateX(-100%);

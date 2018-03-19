@@ -2,33 +2,33 @@
   <ul  v-cloak class="study">
     <div class="study__header">
       <div class="study__search">
-        <img @click.stop.prevent="serachHandle" class="study__search__icon" src="./ss_06.png" />
-        <input class="study__search__txt" v-model="searchInput" @change.stop.prevent="serachHandle" placeholder="姓名 / ID / 日期 / 描述 / 备注" type="text">
-        <img @click.stop.prevent="serachResetHandle" class="study__search__icon p-8" src="./ss_03.png" />
+        <img @click.stop.prevent="serachHandle" class="study__search__icon" src="./images/ss_06.png" />
+        <input class="study__search__txt" ref="searchEl" @focus="searchClose=true" @blur="serachHandle"  v-model="searchInput" placeholder="姓名 / ID / 日期 / 描述 / 备注" type="text">
+        <img @click="serachResetHandle" v-show="searchClose" class="study__search__icon p-8" src="./images/ss_03.png" />
       </div>
     </div>
     <ul class="study__sort">
       <li @click.stop.prevent="sort('id')">
            <span>病人ID</span>
-          <img v-if="sortParam.sortBy=='id'&&sortParam.sortDir" style="transform: rotateZ(-180deg);"  src="./sort--light.png" alt="">
-          <img v-else-if="sortParam.sortBy=='id'&&!sortParam.sortDir" src="./sort--light.png" alt="">
-          <img v-else src="./sort--gray.png" alt="">
+          <img v-if="sortParam.sortBy=='id'&&sortParam.sortDir" style="transform: rotateZ(-180deg);"  src="./images/sort--light.png" alt="">
+          <img v-else-if="sortParam.sortBy=='id'&&!sortParam.sortDir" src="./images/sort--light.png" alt="">
+          <img v-else src="./images/sort--gray.png" alt="">
         </li>
       <li @click.stop.prevent="sort('name')">
           <span>病人姓名</span>
-          <img v-if="sortParam.sortBy=='name'&&sortParam.sortDir"  style="transform: rotateZ(-180deg);"  src="./sort--light.png" alt="">
-          <img v-else-if="sortParam.sortBy=='name'&&!sortParam.sortDir"  src="./sort--light.png" alt="">
-          <img v-else src="./sort--gray.png" alt="">
+          <img v-if="sortParam.sortBy=='name'&&sortParam.sortDir"  style="transform: rotateZ(-180deg);"  src="./images/sort--light.png" alt="">
+          <img v-else-if="sortParam.sortBy=='name'&&!sortParam.sortDir"  src="./images/sort--light.png" alt="">
+          <img v-else src="./images/sort--gray.png" alt="">
        </li>
       <li @click.stop.prevent="sort('uploadTime')">
             <span>上传时间</span>
-            <img v-if="sortParam.sortBy=='uploadTime'&&sortParam.sortDir"  style="transform: rotateZ(-180deg);"  src="./sort--light.png" alt="">
-            <img v-else-if="sortParam.sortBy=='uploadTime'&&!sortParam.sortDir" src="./sort--light.png" alt="">
-            <img v-else src="./sort--gray.png" alt="">
+            <img v-if="sortParam.sortBy=='uploadTime'&&sortParam.sortDir"  style="transform: rotateZ(-180deg);"  src="./images/sort--light.png" alt="">
+            <img v-else-if="sortParam.sortBy=='uploadTime'&&!sortParam.sortDir" src="./images/sort--light.png" alt="">
+            <img v-else src="./images/sort--gray.png" alt="">
         </li>
     </ul>
     <section class="study__content">
-      <scroll ref="scroll" class="study__scroll">
+      <!-- <scroll ref="studyScroll" :list="patients" class="study__scroll"> -->
         <ul v-if="patients" class="study__list">
           <li v-for="(item,x) in patients" :key="x" class="study__list__item">
             <div class="study__info__wrap study__base__info__wrap">
@@ -65,18 +65,18 @@
                 <div class="study__list__remark">
                 <span class="study__list__remark-label">备注&nbsp;:&nbsp;</span>
                 <div class="study__list__remark-txt">
-                  <input class="study__list__remark-input" type="text" v-model="ceil.remarks" :ref="'remarksInput-'+x+'-'+y" disabled placeholder="点击右侧编辑图标，添加备注信息"
-                    @blur.stop.prevent="changeStudyRemarks(ceil,x,y)"
+                  <input class="study__list__remark-input" type="text" v-model="ceil.remarks" disabled placeholder="点击右侧编辑图标，添加备注信息"
+                  @blur.stop.prevent="changeStudyRemarks(ceil,x,y,$event,true)"
                   >
                 </div>
-                <img v-if="focusId.x!=x||focusId.y!=y" @click.stop.prevent="remarkOnFocus(ceil,x,y)" class="study__list__remark-btn" src="./remark.png" />
-                <img v-else @click.stop.prevent="changeStudyRemarks(ceil,x,y)" class="study__list__remark-btn" src="./qd.png" alt="">
+                <img v-if="focusId.x!=x||focusId.y!=y" @click.stop.prevent="remarkOnFocus(ceil,x,y,$event)" class="study__list__remark-btn" src="./images/remark.png" />
+                <img v-else @click.stop.prevent="changeStudyRemarks(ceil,x,y,$event)" class="study__list__remark-btn" src="./images/qd.png" alt="">
               </div>
             </div>
             </div>
           </li>
         </ul>
-      </scroll>
+      <!-- </scroll> -->
     </section>
   </ul>
 </template>
@@ -84,7 +84,7 @@
 <script>
 import Scroll from "@/base/scroll";
 import { changeremarks } from "@/api";
-import { cloneObj } from "@/util/tool.js";
+import { getObjXy } from "@/util/tool.js";
 import sortBy from "lodash/sortBy";
 export default {
   props: {
@@ -101,6 +101,7 @@ export default {
       // 判断是否正在改变备注
       changeRemarkIng: false,
       searchInput: "",
+      searchClose: false,
       focusId: { x: -1, y: -1 }
     };
   },
@@ -109,38 +110,53 @@ export default {
       if (res !== this.patients) {
         this._initData();
       }
+    },
+    searchInput() {
+      this.serachHandle();
     }
   },
   mounted() {
     this._initData();
+    let self = this;
   },
   methods: {
     _initData() {
-      // this.patients = cloneObj(this.oPatients);
       this.patients = this.oPatients;
     },
-    remarkOnFocus(res, x, y) {
+    remarkOnFocus(res, x, y, e) {
       this.focusId = { x, y };
       this.changeRemarkIng = true;
-      let e = this.$refs["remarksInput-" + x + "-" + y][0];
+      let target = e.target.parentElement.children[1].children[0];
       // 注释的内容为输入框focus时的页面滚动应为有bug所以暂时不用
-      // if (e.getBoundingClientRect) {
-      //   let scrolltop = e.getBoundingClientRect().bottom - 140;
-      //   this.$refs.scroll.scrollBy(0, -scrolltop, 1);
-      // }
-      // e.scrollIntoView(true);
+      let nHeader = getObjXy(document.querySelector(".header")).height;
+      let nStudyHeader = getObjXy(document.querySelector(".study__header"))
+        .height;
+      let nStudySort = getObjXy(document.querySelector(".study__sort")).height;
+
+      let scrolly =
+        getObjXy(target).top - nHeader - nStudyHeader - nStudySort - 50;
+      // this.$refs.studyScroll.scrollBy(0, -scrolly, 1);
+
+      // target.scrollIntoView(true);
       // e.scrollIntoViewIfNeeded();
-      e.disabled = false;
-      e.focus();
+      target.disabled = false;
+      target.focus();
     },
-    changeStudyRemarks(res, x, y) {
-      let e = this.$refs["remarksInput-" + x + "-" + y][0];
+    changeStudyRemarks(res, x, y, e, flag) {
+      // flag 表示是自己blur或者是点击图标
+      let target;
+      if (flag) {
+        target = e.target;
+      } else {
+        target = e.target.parentElement.children[1].children[0];
+      }
       // 将输入框变为不可用
-      e.disabled = true;
-      if (e.value != "") {
+      target.disabled = true;
+      target.blur();
+      if (target.value != "") {
         let data = {
           studyid: res.id,
-          remarks: e.value
+          remarks: target.value
         };
         changeremarks(data).then(response => {
           if (response.r) {
@@ -153,7 +169,7 @@ export default {
         // 设置定时器解决300秒问题
         setTimeout(() => {
           this.changeRemarkIng = false;
-          e.value = res.remarks;
+          target.value = res.remarks;
           this.focusId = { x: -1, y: -1 };
         }, 300);
       }
@@ -194,9 +210,11 @@ export default {
             }
           }
         }
+        this.searchClose = true;
       } else {
         // 如果为空 则初始化数据
         this._initData();
+        this.searchClose = false;
       }
     },
     sort(type) {
@@ -301,234 +319,5 @@ export default {
 </script>
 
 <style lang="scss">
-.study {
-  position: absolute;
-  left: 0;
-  padding-top: 88px;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  &__header {
-    height: 88px;
-    padding: 0 30px;
-    border-bottom: 1px solid #dfdfdf;
-    display: flex;
-    flex-flow: column nowrap;
-    justify-content: center;
-  }
-  &__search {
-    height: 60px;
-    border-radius: 6px;
-    display: flex;
-    color: #999999;
-    justify-content: center;
-    align-items: center;
-    flex-flow: row nowrap;
-    background-color: #e3e6e6;
-    &__icon {
-      flex: 0 1 auto;
-      height: 45px;
-      font-size: 28px;
-      width: 48px;
-      padding: 10px 10px;
-      background-color: transparent;
-      &.p-8 {
-        padding-right: 8px;
-      }
-    }
-    &__txt {
-      border: none;
-      font-size: 30px;
-      text-indent: 10px;
-      color: #666;
-      flex: 1 1 auto;
-      background-color: #e3e6e6;
-      &::-webkit-input-placeholder {
-        color: #666;
-      }
-      &::-moz-placeholder {
-        /* Mozilla Firefox 19+ */
-        color: #666;
-      }
-      &:-moz-placeholder {
-        /* Mozilla Firefox 4 to 18 */
-        color: #666;
-      }
-      &:-ms-input-placeholder {
-        /* Internet Explorer 10-11 */
-        color: #666;
-      }
-    }
-  }
-  &__content {
-    position: absolute;
-    width: 100%;
-    top: 254px;
-    left: 0;
-    bottom: 0;
-  }
-
-  &__scroll {
-    width: 100%;
-    height: 100%;
-    background-color: #e2e5e5;
-    overflow: hidden;
-  }
-  &__sort {
-    height: 78px;
-    line-height: 78px;
-    font-size: 30px;
-    color: #666;
-    display: flex;
-    flex-flow: row nowrap;
-    text-align: center;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 30px;
-    li.active {
-      color: #e68f04;
-    }
-    span {
-      vertical-align: middle;
-      padding-right: 10px;
-    }
-    img {
-      height: 22px;
-      vertical-align: middle;
-    }
-  }
-
-  &__info__wrap {
-    padding: 0 22px;
-  }
-  &__info {
-    padding: 10px 0 0 0;
-    border-bottom: 1px solid #d6d8da;
-  }
-  .study__info__wrap:last-child .study__info {
-    border: none;
-  }
-  &__base {
-    &__info__wrap {
-      background-color: #f0f0f0;
-    }
-    &__name {
-      line-height: 42px;
-      padding-bottom: 11px;
-      font-size: 30px;
-      color: #e48f00;
-      p {
-        overflow: hidden;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-      }
-    }
-    &__other {
-      font-size: 28px;
-      color: #999;
-      padding-bottom: 20px;
-      li {
-        line-height: 40px;
-        display: flex;
-        flex-flow: row nowrap;
-        justify-content: flex-start;
-        span {
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
-        .f {
-          width: 378px;
-          margin-right: 30px;
-          flex: 0 0 auto;
-        }
-      }
-    }
-  }
-
-  &__study {
-    &__info {
-      font-size: 30px;
-      color: #666;
-      line-height: 44px;
-      &__wrap {
-        border: 4px solid #fff;
-        background-color: #fff;
-        &.active {
-          border: 4px solid #e39000;
-        }
-      }
-
-      li {
-        display: flex;
-        flex-flow: row nowrap;
-        justify-content: flex-start;
-        span {
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
-        .f {
-          width: 378px;
-          margin-right: 30px;
-          flex: 0 0 auto;
-        }
-      }
-    }
-  }
-
-  &__list {
-    padding-bottom: 10px;
-    &__item {
-      margin-top: 10px;
-      background-color: #fff;
-      &.active {
-        border-color: #ea7400;
-      }
-      &:last-child {
-        margin-bottom: 20px;
-      }
-    }
-    &__remark {
-      position: relative;
-      font-size: 30px;
-      height: 76px;
-      display: flex;
-      flex-flow: row nowrap;
-      justify-content: space-between;
-      align-items: center;
-      color: #666666;
-      &-label {
-        width: 100px;
-      }
-      &-txt {
-        height: 60px;
-        flex: 1 1 auto;
-        position: relative;
-      }
-      &-input {
-        position: absolute;
-        text-indent: 10px;
-        line-height: 56px;
-        left: 0;
-        top: 0;
-        width: 100%;
-        border: 2px solid #fff;
-        background-color: transparent;
-        height: 100%;
-        color: #999;
-        border-radius: 6px;
-        &:focus {
-          background-color: #e3e6e6;
-          border: 2px solid #e6a118;
-        }
-      }
-      &-btn {
-        height: 44px;
-        width: 78px;
-        padding-left: 30px;
-      }
-    }
-  }
-}
+@import "./css/index.scss";
 </style>
