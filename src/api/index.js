@@ -25,7 +25,7 @@ export function getRead(data) {
 }
 
 export function checkStatus(data) {
-    return fetch({url: '/outside/getDataStatus.php', method: "post", data})
+    return fetch({url: '/datalist/getDataStatus.php', method: "post", data})
 }
 
 export function seriesHide(data) {

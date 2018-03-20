@@ -14,7 +14,7 @@ import CoHeader from "@/components/co-header";
 import CoSeries from "@/components/co-series";
 import CoStudy from "@/components/co-study";
 import CoImages from "@/components/co-images";
-import { login, getData, mGetData, checkStatus } from "@/api";
+import { login, getData, mGetData } from "@/api";
 import { userAgent, IsPC } from "@/util/tool";
 import store from "store";
 
@@ -38,7 +38,7 @@ export default {
         message: ["为了更好的体验，", "建议您使用Chrome浏览器进入本系统"]
       });
     }
-    eruda.init();
+    // eruda.init();
   },
   data() {
     return {
@@ -67,14 +67,13 @@ export default {
       // 失败就重新登陆
       window.location.href = "https://www.rayplus.net/login/index.html";
     },
-    _getUserStatus(flag, userInfo) {},
     _getData() {
       // 获取数据
       return new Promise((resolve, reject) => {
         getData().then(res => {
           if (res.code && res.code == 1) {
             this.oPatients = res.patients;
-            resolve();
+            resolve(res);
           } else {
             reject();
           }
@@ -82,6 +81,7 @@ export default {
       });
     },
     _getCurseries(series, seriesId) {
+      // 此时表示已经完成
       // 根据series 去获取图片信息
       mGetData({ seriesId }).then(res => {
         if (res.code == 1) {
@@ -90,8 +90,7 @@ export default {
         } else {
           // 如果未获取
           this.$message({
-            message: "获取信息失败",
-            type: "error",
+            message: "数据获取失败",
             durtion: 3e3
           });
         }
@@ -142,30 +141,6 @@ export default {
       this.seriesShow = true;
       this.oSeries = series;
       this.studyActive = studyActive;
-      this.updateArr = [];
-      series.forEach(el => {
-        // 如果不等于5 表示还有series在processing中 所以需要定时更新数据
-        if (el.processingStatus != 5) {
-          this.updateArr.push(el);
-        }
-      });
-      if (this.updateArr.length) {
-        for (var i = 0, len = this.updateArr.length; i < len; i++) {
-          this._checkStatus(this.updateArr[i]);
-        }
-      }
-    },
-    _checkStatus(series) {
-      setTimeout(() => {
-        checkStatus({ seriesid: series.id }).then(res => {
-          if (res.r > 2) {
-            // 如果大于2 表示数据已经更新 这个时候更新数据
-            this._initData();
-          } else {
-            this._checkStatus(series);
-          }
-        });
-      }, 3e4);
     },
     imageShow(flag) {
       // 图层的显示和隐藏

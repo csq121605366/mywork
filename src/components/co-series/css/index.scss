@@ -14,7 +14,6 @@
         padding: 12px 15px;
         width: 100%;
         display: flex;
-        flex-flow: row nowrap;
         justify-content: space-around;
         &__btn {
             flex: 1 1 auto;
@@ -57,8 +56,7 @@
             font-size: 24px;
             line-height: 40px;
             display: flex;
-            flex-flow: column nowrap; // padding-bottom: 16px;
-            // border-bottom: 1px solid #dfdfdf;
+            flex-flow: column nowrap;
             li {
                 display: flex;
                 flex-flow: row nowrap;
@@ -76,6 +74,14 @@
             &.active {
                 border-color: #ea7400;
             }
+            &.visible {
+                .series__list__order {
+                    color: #ea7400;
+                }
+                input {
+                    color: #666;
+                }
+            }
             &:last-child {
                 margin-bottom: 10px;
             }
@@ -90,9 +96,6 @@
             height: 66px;
             line-height: 66px;
             color: #999;
-            &.visible {
-                color: #ea7400;
-            }
             span {
                 margin-left: 30px;
             }
@@ -101,6 +104,7 @@
             position: relative;
             font-size: 30px;
             height: 76px;
+            line-height: 76px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -131,7 +135,7 @@
                 height: 100%;
                 border-radius: 6px;
                 background-color: transparent;
-                color: #666;
+                color: #999;
                 &:focus {
                     background-color: #e3e6e6;
                     border: 2px solid #e6a118;

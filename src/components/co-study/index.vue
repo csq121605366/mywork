@@ -34,16 +34,16 @@
             <div class="study__info__wrap study__base__info__wrap">
                   <div class="study__base__info study__info">
                   <div class="study__base__name">
-                    <p>病人姓名&nbsp;:&nbsp;{{item.name}}</p>
+                    <p>病人姓名：{{item.name}}</p>
                   </div>
                   <ul class="study__base__other">
                     <li>
-                      <span class="f">病人ID&nbsp;:&nbsp;{{item.id}}</span>
-                      <span>性别&nbsp;:&nbsp;{{item.gender|sexFilter}}</span>
+                      <span class="f">病人ID：{{item.id}}</span>
+                      <span>性别：{{item.gender|sexFilter}}</span>
                     </li>
                     <li>
-                      <span class="f">年龄&nbsp;:&nbsp;{{item.studies[0].age}}</span>
-                      <span>出生日期&nbsp;:&nbsp;{{item.birth}}</span>
+                      <span class="f">年龄：{{item.studies[0].age}}</span>
+                      <span>出生日期：{{item.birth}}</span>
                     </li>
                   </ul>
                 </div>
@@ -55,15 +55,15 @@
             <div class="study__study__info study__info">
               <ul>
                 <li>
-                  <span class="f">Study&nbsp;:&nbsp;{{ceil.description}}</span>
+                  <span class="f">Study：{{ceil.description}}</span>
                 </li>
                 <li>
                   <span class="f">{{ceil.parts}}／{{ceil.mode}}</span>
-                  <span>Study日期&nbsp;:&nbsp;{{ceil.date}}</span>
+                  <span>Study日期：{{ceil.date}}</span>
                 </li>
               </ul>
                 <div class="study__list__remark">
-                <span class="study__list__remark-label">备注&nbsp;:&nbsp;</span>
+                <span class="study__list__remark-label">备注：</span>
                 <div class="study__list__remark-txt">
                   <input class="study__list__remark-input" type="text" v-model="ceil.remarks" disabled placeholder="点击右侧编辑图标，添加备注信息"
                   @blur.stop.prevent="changeStudyRemarks(ceil,x,y,$event,true)"
@@ -83,7 +83,7 @@
 
 <script>
 import Scroll from "@/base/scroll";
-import { changeremarks } from "@/api";
+import { changeremarks} from "@/api";
 import { getObjXy, cloneObj } from "@/util/tool.js";
 import sortBy from "lodash/sortBy";
 export default {
@@ -106,24 +106,16 @@ export default {
     };
   },
   watch: {
-    oPatients(res) {
-      if (res !== this.patients) {
-        this._initData();
-      }
-    },
     searchInput() {
       this.serachHandle();
     }
   },
   mounted() {
     this._initData();
-    let self = this;
   },
   methods: {
     _initData() {
       this.patients = this.oPatients;
-      // let test = cloneObj(this.oPatients[0].studies);
-      // this.oPatients[0].studies.push(test);
     },
     remarkOnFocus(res, x, y, e) {
       this.focusId = { x, y };

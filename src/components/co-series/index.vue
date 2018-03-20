@@ -7,11 +7,12 @@
     <div v-if="series" class="series__content">
       <!-- <scroll ref="seriesScroll" :list="series" class="series__scroll"> -->
         <ul v-if="series" class="series__list">
-          <li :class="seriesActiveId==item.id?'active':''" 
+          <li 
+          :class="{'active':seriesActiveId==item.id?true:false,'visible':item.visible==1?true:false}" 
           v-if="item.visible == 1||showHide?true:false" 
           v-for="(item,index) in series" :key="index" class="series__list__item">
             <!-- 显示的数据 -->
-            <div v-if="item.visible" class="series__list__order visible">
+            <div v-if="item.visible" class="series__list__order">
               <img @click.self.prevent="seriesShowHide(item,false)"  class="series__list__eye" src="./images/eye--light.png" />
               <span>序列号：{{item.id}}</span>
             </div>
@@ -22,25 +23,25 @@
             </div>
             <ul @click="getCurseries(item,item.id)" class="series__list__info">
               <li>
-                <span>Series&nbsp;:&nbsp;{{item.description}}</span>
+                <span>Series：{{item.description}}</span>
               </li>
               <li>
-                <span>分辨率&nbsp;:&nbsp;{{item.resolution}}</span>
+                <span>分辨率：{{item.resolution}}</span>
               </li>
               <li>
-                <span>层厚&nbsp;:&nbsp;{{item.thickness}}</span>
+                <span>层厚：{{item.thickness}}</span>
               </li>
               <li>
-                <span class="txt-left">#im&nbsp;:&nbsp;{{item.imageNum}}</span>
+                <span class="txt-left">#im：{{item.imageNum}}</span>
                 <span class="txt-center">{{item.parts}}/{{item.mode}}</span>
-                <span class="txt-right">日期&nbsp;:&nbsp;{{item.date}}</span>
+                <span class="txt-right">日期：{{item.date}}</span>
               </li>
             </ul>
             <div class="series__list__remark">
               <span 
                 class="series__list__remark-label" 
                 :class="item.visible?'visible':''"
-              >备注&nbsp;:&nbsp;</span>
+              >备注：</span>
               <div class="series__list__remark-txt">
                 <input class="series__list__remark-input" type="text" v-model="item.remarks" disabled placeholder="点击右侧编辑图标，添加备注信息" 
                 @blur.stop.prevent="changeSeriesRemarks(item,index,$event,true)">
@@ -57,7 +58,7 @@
 
 <script>
 import Scroll from "@/base/scroll";
-import { changeremarks, seriesHide, seriesShow } from "@/api";
+import { changeremarks, seriesHide, seriesShow, checkStatus } from "@/api";
 import { getObjXy } from "@/util/tool.js";
 import store from "store";
 
@@ -78,11 +79,6 @@ export default {
       changeRemarkIng: false // 判断是否正在改变备注
     };
   },
-  watch: {
-    oSeries() {
-      this._initSeries();
-    }
-  },
   mounted() {
     this._initSeries();
   },
@@ -90,13 +86,28 @@ export default {
     _initSeries() {
       this.series = this.oSeries;
     },
-    getCurseries(series, series_id) {
+    getCurseries(series, seriesId) {
       // 点击series
       this.seriesActiveId = -1;
       if (!this.changeRemarkIng) {
-        this.seriesActiveId = series_id;
-        this.$emit("getCurseries", series, series_id);
+        this.seriesActiveId = seriesId;
+        if (series && series.processingStatus > 4) {
+          this.$emit("getCurseries", series, seriesId);
+        } else {
+          this._checkStatus(series, seriesId);
+        }
       }
+    },
+    _checkStatus(series, seriesId) {
+      checkStatus({ seriesId: series.id }).then(res => {
+        if (res.processingStatus > 4) {
+          this.$emit("getCurseries", series, seriesId);
+        } else {
+          this.$message({
+            message: "正在处理中..."
+          });
+        }
+      });
     },
     remarkOnFocus(res, index, e) {
       this.changeRemarkIng = true;

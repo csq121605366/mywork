@@ -44,6 +44,7 @@ export default {
   padding: 88px 40px 0;
   left: 0;
   top: 0;
+  z-index: 999;
   background-color: rgba(0, 0, 0, 0.7);
   display: flex;
   flex-flow: row nowrap;
