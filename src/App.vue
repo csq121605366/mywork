@@ -1,9 +1,9 @@
 <template>
   <div id="app">
     <co-header @getUserStatus="_initData" @backHandle="backHandle"></co-header>
-    <co-study v-if="oPatients" ref="studyRef"  @seriesActive="seriesActive" :oPatients="oPatients"></co-study>
+    <co-study v-if="oPatients" ref="studyRef" @seriesActive="seriesActive" :oPatients="oPatients"></co-study>
     <transition name="slideright">
-      <co-series v-if="seriesShow"  @getCurseries="_getCurseries" :oSeries="oSeries"></co-series>
+      <co-series v-if="seriesShow" @getCurseries="_getCurseries" :oSeries="oSeries"></co-series>
     </transition>
     <co-images v-if="curSeries" :userInfo="userInfo" @imageShow="imageShow" :studyActive="studyActive" :curSeries="curSeries" :imgIY="imgIY"></co-images>
   </div>
@@ -17,7 +17,6 @@ import CoImages from "@/components/co-images";
 import { login, getData, mGetData } from "@/api";
 import { userAgent, IsPC } from "@/util/tool";
 import store from "store";
-import eruda from 'eruda';
 export default {
   name: "app",
   components: {
@@ -38,7 +37,6 @@ export default {
         message: ["为了更好的体验，", "建议您使用Chrome浏览器进入本系统"]
       });
     }
-    eruda.init();
   },
   data() {
     return {
@@ -119,7 +117,6 @@ export default {
     },
     _initData(flag, userInfo) {
       // flag表示登录是否成功
-      alert('fdg')
       if (flag) {
         this.userInfo = userInfo;
         // 获取用户状态
