@@ -61,7 +61,6 @@ export default {
   methods: {
     _initData() {
       this.series = this.curSeries;
-      // this.series = cloneObj(this.curSeries);
     },
     showHandle(flag = true) {
       this.show = flag;
@@ -82,6 +81,7 @@ export default {
         let urlData = window.btoa(
           "SID=" + this.series.id + "&studyId=" + this.studyActive
         );
+        this.showHandle(false);
         window.location.href = url + "?" + urlData;
       }
     },
@@ -97,8 +97,10 @@ export default {
           let urlData = window.btoa(
             "SID=" + this.series.id + "&studyId=" + this.studyActive
           );
+          this.showHandle(false);
           window.location.href = "../viewer_mobile/index.html?" + urlData;
         } else if (res.code == 27) {
+          this.showHandle(false);
           window.location.href = "https://www.rayplus.net/login/index.html";
         }
       });

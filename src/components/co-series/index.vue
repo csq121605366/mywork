@@ -44,10 +44,10 @@
               >备注：</span>
               <div class="series__list__remark-txt">
                 <input class="series__list__remark-input" type="text" v-model="item.remarks" disabled placeholder="点击右侧编辑图标，添加备注信息" 
-                @blur.stop.prevent="changeSeriesRemarks(item,index,$event,true)">
+                @blur.stop.prevent="changeSeriesRemarks(item,index,$event)">
               </div>
               <img v-if="focusId!=index" @click.stop.prevent="remarkOnFocus(item,index,$event)" class="series__list__remark-btn" src="./images/remark.png" />
-              <img v-else @click.stop.prevent="changeSeriesRemarks(item,index,$event)" class="series__list__remark-btn" src="./images/qd.png" alt="">
+              <img v-else class="series__list__remark-btn" src="./images/qd.png" alt="">
             </div>
           </li>
         </ul>
@@ -110,53 +110,40 @@ export default {
       });
     },
     remarkOnFocus(res, index, e) {
-      this.changeRemarkIng = true;
-      this.focusId = index;
-      let target = e.target.parentElement.children[1].children[0];
-      // 注释的内容为输入框focus时的页面滚动应为有bug所以暂时不用
-      let nHeader = getObjXy(document.querySelector(".header")).height;
-      let nSeriesHeader = getObjXy(document.querySelector(".series__header"))
-        .height;
-      let scrolly = getObjXy(target).top - nHeader - nSeriesHeader - 50;
-
-      target.disabled = false;
-      target.focus();
+      if (!this.changeRemarkIng) {
+        this.changeRemarkIng = true;
+        this.focusId = index;
+        let target = e.target.parentElement.children[1].children[0];
+        target.disabled = false;
+        target.focus();
+      }
     },
     changeSeriesRemarks(res, index, e, flag) {
-      // cansend 解决 input blur 和点击提交按钮的 两次运行这个方法的问题
-      if (!this.cansend) {
-        this.cansend = true;
-        // 改变seies值
-        let target;
-        if (flag) {
-          target = e.target;
-        } else {
-          target = e.target.parentElement.children[1].children[0];
-        }
-        // 将输入框变为不可用
-        target.disabled = true;
-        target.blur();
-        if (target.value != "") {
-          let data = {
-            seriesid: res.id,
-            remarks: target.value
-          };
-          changeremarks(data).then(response => {
-            if (response.r) {
-              alert("备注修改失败！");
-            }
-            this.changeRemarkIng = false;
-            this.focusId = -1;
-            this.cansend = false;
-          });
-        } else {
-          setTimeout(() => {
-            target.value = res.remarks;
-            this.changeRemarkIng = false;
-            this.cansend = false;
-            this.focusId = -1;
-          }, 300);
-        }
+      let target;
+      target = e.target;
+      // 将输入框变为不可用
+      target.disabled = true;
+      target.blur();
+      if (target.value != "") {
+        let data = {
+          seriesid: res.id,
+          remarks: target.value
+        };
+        changeremarks(data).then(response => {
+          if (response.r) {
+            this.$message({
+              message: "备注修改失败！"
+            });
+          }
+          this.changeRemarkIng = false;
+          this.focusId = -1;
+        });
+      } else {
+        setTimeout(() => {
+          target.value = res.remarks;
+          this.changeRemarkIng = false;
+          this.focusId = -1;
+        }, 30);
       }
     },
     seriesShowHideReq(req, flag) {

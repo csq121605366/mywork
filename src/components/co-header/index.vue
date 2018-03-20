@@ -55,17 +55,18 @@ export default {
     };
   },
   created() {
-    let data = {
-      string: "user3",
-      password: 123456
-    };
-    login(data).then(res => {
-      let code = res.code;
-      if (code == 1) {
-        this._getUserStatus();
-      } else {
-      }
-    });
+    // let data = {
+    //   string: "user3",
+    //   password: 123456
+    // };
+    // login(data).then(res => {
+    //   let code = res.code;
+    //   if (code == 1) {
+    //     this._getUserStatus();
+    //   } else {
+    //   }
+    // });
+     this._getUserStatus();
   },
   methods: {
     _getUserStatus() {

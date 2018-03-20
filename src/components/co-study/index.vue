@@ -66,11 +66,11 @@
                 <span class="study__list__remark-label">备注：</span>
                 <div class="study__list__remark-txt">
                   <input class="study__list__remark-input" type="text" v-model="ceil.remarks" disabled placeholder="点击右侧编辑图标，添加备注信息"
-                  @blur.stop.prevent="changeStudyRemarks(ceil,x,y,$event,true)"
+                  @blur="changeStudyRemarks(ceil,x,y,$event,true)"
                   >
                 </div>
                 <img v-if="focusId.x!=x||focusId.y!=y" @click.stop.prevent="remarkOnFocus(ceil,x,y,$event)" class="study__list__remark-btn" src="./images/remark.png" />
-                <img v-else @click.stop.prevent="changeStudyRemarks(ceil,x,y,$event)" class="study__list__remark-btn" src="./images/qd.png" alt="">
+                <img v-else class="study__list__remark-btn" src="./images/qd.png" alt="">
               </div>
             </div>
             </div>
@@ -83,7 +83,7 @@
 
 <script>
 import Scroll from "@/base/scroll";
-import { changeremarks} from "@/api";
+import { changeremarks } from "@/api";
 import { getObjXy, cloneObj } from "@/util/tool.js";
 import sortBy from "lodash/sortBy";
 export default {
@@ -118,59 +118,38 @@ export default {
       this.patients = this.oPatients;
     },
     remarkOnFocus(res, x, y, e) {
-      this.focusId = { x, y };
-      this.changeRemarkIng = true;
-      let target = e.target.parentElement.children[1].children[0];
-      // 注释的内容为输入框focus时的页面滚动应为有bug所以暂时不用
-      let nHeader = getObjXy(document.querySelector(".header")).height;
-      let nStudyHeader = getObjXy(document.querySelector(".study__header"))
-        .height;
-      let nStudySort = getObjXy(document.querySelector(".study__sort")).height;
-
-      let scrolly =
-        getObjXy(target).top - nHeader - nStudyHeader - nStudySort - 50;
-      // this.$refs.studyScroll.scrollBy(0, -scrolly, 1);
-
-      // target.scrollIntoView(true);
-      // e.scrollIntoViewIfNeeded();
-      target.disabled = false;
-      target.focus();
+      if (!this.changeRemarkIng) {
+        this.focusId = { x, y };
+        this.changeRemarkIng = true;
+        let target = e.target.parentElement.children[1].children[0];
+        target.disabled = false;
+        target.focus();
+      }
     },
-    changeStudyRemarks(res, x, y, e, flag) {
-      // cansend 解决 input blur 和点击提交按钮的 两次运行这个方法的问题
-      if (!this.canSend) {
-        this.canSend = true;
-        // flag 表示是自己blur或者是点击图标
-        let target;
-        if (flag) {
-          target = e.target;
-        } else {
-          target = e.target.parentElement.children[1].children[0];
-        }
-        // 将输入框变为不可用
-        target.disabled = true;
-        target.blur();
-        if (target.value != "") {
-          let data = {
-            studyid: res.id,
-            remarks: target.value
-          };
-          changeremarks(data).then(response => {
-            if (response.r) {
-              alert("备注修改失败！");
-            }
-            this.changeRemarkIng = false;
-            this.canSend = false;
-            this.focusId = { x: -1, y: -1 };
-          });
-        } else {
-          setTimeout(() => {
-            this.changeRemarkIng = false;
-            this.canSend = false;
-            target.value = res.remarks;
-            this.focusId = { x: -1, y: -1 };
-          }, 300);
-        }
+    changeStudyRemarks(res, x, y, e) {
+      let target;
+      target = e.target;
+      // 将输入框变为不可用
+      target.disabled = true;
+      target.blur();
+      if (target.value != "") {
+        let data = {
+          studyid: res.id,
+          remarks: target.value
+        };
+        changeremarks(data).then(response => {
+          if (response.r) {
+            alert("备注修改失败！");
+          }
+          this.changeRemarkIng = false;
+          this.focusId = { x: -1, y: -1 };
+        });
+      } else {
+        setTimeout(() => {
+          this.changeRemarkIng = false;
+          target.value = res.remarks;
+          this.focusId = { x: -1, y: -1 };
+        }, 30);
       }
     },
     resetActiveId() {

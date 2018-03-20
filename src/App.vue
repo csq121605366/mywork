@@ -17,7 +17,7 @@ import CoImages from "@/components/co-images";
 import { login, getData, mGetData } from "@/api";
 import { userAgent, IsPC } from "@/util/tool";
 import store from "store";
-
+import eruda from 'eruda';
 export default {
   name: "app",
   components: {
@@ -38,7 +38,7 @@ export default {
         message: ["为了更好的体验，", "建议您使用Chrome浏览器进入本系统"]
       });
     }
-    // eruda.init();
+    eruda.init();
   },
   data() {
     return {
@@ -98,6 +98,7 @@ export default {
     },
     _active() {
       let activeGroup = store.get("activeGroup");
+      console.log(activeGroup);
       if (activeGroup) {
         this.oPatients.forEach(x => {
           x.studies.forEach(y => {
@@ -118,6 +119,7 @@ export default {
     },
     _initData(flag, userInfo) {
       // flag表示登录是否成功
+      alert('fdg')
       if (flag) {
         this.userInfo = userInfo;
         // 获取用户状态
