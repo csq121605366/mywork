@@ -1,7 +1,8 @@
 <template>
-  <section class="message" v-show="show">
+  <section @click.stop="show=false" class="message" v-show="show">
     <div class="message__info">
-      <p>{{message}}</p>
+      <p v-if="typeof message=='string'">{{message}}</p>
+      <p v-else v-for="(item,i) in message" :key="i">{{item}}</p>
     </div>
   </section>
 </template>
@@ -43,18 +44,15 @@ export default {
   padding: 88px 40px 0;
   left: 0;
   top: 0;
-  z-index: 99;
-  background-color: rgba(0, 0, 0, 0);
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: center;
+  align-items: center;
   &__info {
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    right: 0;
-    margin: auto;
-    height: 180px;
-    width: 610px;
-    background-color: rgba(49, 90, 140, 0.8);
+    height: 178px;
+    flex: 1;
+    border: 2px solid #fff;
     border-radius: 10px;
     text-align: center;
     color: #fff;
@@ -65,16 +63,16 @@ export default {
     justify-content: center;
     align-items: center;
     &.error {
-      background-color: #f56c6c;
+      color: #f56c6c;
     }
     &.warning {
-      background-color: #e6a23c;
+      color: #e6a23c;
     }
     &.success {
-      background-color: #67c23a;
+      color: #67c23a;
     }
     &.info {
-      background: #909399;
+      color: #909399;
     }
   }
 }

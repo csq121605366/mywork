@@ -11,7 +11,7 @@
       <img class="header__icon" src="./images/people.png" alt="">
     </div>
   </header>
-  <div v-show="droplistShow" class="droplist__layer"></div>
+  <div v-show="droplistShow" @click.stop.prevent="droplistShow=false" class="droplist__layer"></div>
     <transition name="drop">
           <ul class="header__droplist" v-show="droplistShow">
             <li class="droplist__userinfo">
@@ -21,21 +21,21 @@
                 <li class="droplist__userinfo__store">{{userInfo.space}}</li>
               </ul>
             </li>
-            <li @touchstart.capture="droplistTouchStart('link1')" @touchend.capture="droplistTouchEnd('link1')" :class="dropTouchActiveId=='link1'?'active':''" class="droplist__link">
+            <li class="droplist__link">
               <img src="./images/11_06.png" alt="">
-              <a  @click.self="droplistShow=false" href="../per_mobile/index.html">账户设置</a>
+              <a href="../per_mobile/index.html">账户设置</a>
             </li>
-            <li @touchstart.capture="droplistTouchStart('link2')" @touchend.capture="droplistTouchEnd('link3')" :class="dropTouchActiveId=='link2'?'active':''" class="droplist__link">
+            <li  class="droplist__link">
               <img src="./images/11_09.png" alt="">
-              <a  @click="droplistShow=false" href="../helpcenter_mobile/index.html">帮助中心</a>
+              <a href="../helpcenter_mobile/index.html">帮助中心</a>
             </li>
-            <li @touchstart.capture="droplistTouchStart('link3')" @touchend.capture="droplistTouchEnd('link3')" :class="dropTouchActiveId=='link3'?'active':''" class="droplist__link">
+            <li class="droplist__link">
               <img src="./images/11_11.png" alt="">
-              <a @click="droplistShow=false" href="https://www.rayplus.net/reg_mobile/legal_agreement_mobile.html">服务协议</a>
+              <a href="https://www.rayplus.net/reg_mobile/legal_agreement_mobile.html">服务协议</a>
             </li>
-            <li @touchstart.capture="droplistTouchStart('link4')" @touchend.capture="droplistTouchEnd('link4')" :class="dropTouchActiveId=='link4'?'active':''" class="droplist__link">
+            <li  class="droplist__link">
               <img src="./images/11_12.png" alt="">
-              <a @click.prevent="droplistShow=false" href="https://www.rayplus.net/outside/logout.php">退出登录</a>
+              <a href="https://www.rayplus.net/outside/logout.php">退出登录</a>
             </li>
         </ul>
     </transition>
@@ -44,36 +44,46 @@
 </template>
 
 <script>
+import { getUserStatus, login } from "@/api";
 export default {
   name: "co-header",
-  props: {
-    userInfo: {
-      type: [Object],
-      default: { name: "未知", space: "0G / 0G" }
-    }
-  },
   data() {
     return {
       droplistShow: false,
-      info: "",
+      userInfo: { name: "未知", space: "0G / 0G" },
       dropTouchActiveId: null
     };
   },
-  watch: {
-    droplistShow(flag) {
-      if (this.droplistShow) {
-        document.addEventListener("click", this.closeDropList);
+  created() {
+    let data = {
+      string: "user3",
+      password: 123456
+    };
+    login(data).then(res => {
+      let code = res.code;
+      if (code == 1) {
+        this._getUserStatus();
       } else {
-        document.removeEventListener("click", this.closeDropList);
       }
-    }
+    });
   },
   methods: {
-    droplistTouchStart(e) {
-      this.dropTouchActiveId = e;
-    },
-    droplistTouchEnd(e) {
-      this.dropTouchActiveId = null;
+    _getUserStatus() {
+      getUserStatus().then(res => {
+        let code = res.code;
+        if (code == 27) {
+          this.$emit("getUserStatus", false);
+        } else {
+          let space = res.space;
+          let used = Math.ceil(Number(res.used) * 100) / 100;
+          this.userInfo = {
+            name: res.username,
+            space: used + "G/" + space + "G",
+            userStatus: res.userStatus
+          };
+          this.$emit("getUserStatus", true, this.userInfo);
+        }
+      });
     },
     backHandle() {
       this.$emit("backHandle");
@@ -89,5 +99,4 @@ export default {
 
 <style lang='scss'>
 @import "~./css/index.scss";
-
 </style>

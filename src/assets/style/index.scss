@@ -5,8 +5,19 @@
 //     src: local('Rayplus-Icons'), url("~@/assets/fonts/Rayplus-Icons.woff") format('woff')/* , url("../fonts/Rayplus-Icons.ttf") format('truetype') */
 //     ;
 // }
+input:disabled,
+input[disabled] {
+    -webkit-opacity: 1;
+    opacity: 1;
+}
 
-input:disabled, input[disabled]{ -webkit-opacity:1; opacity: 1; }
+input[type="text"] {
+    -webkit-appearance: none;
+}
+
+textarea {
+    -webkit-appearance: none;
+}
 
 // .rayplus-icons {
 //     font-family: 'Rayplus-Icons';
@@ -27,7 +38,6 @@ input:disabled, input[disabled]{ -webkit-opacity:1; opacity: 1; }
 //     -moz-osx-font-smoothing: grayscale;
 //     font-feature-settings: 'liga';
 // }
-
 [v-cloak] {
     display: none;
 }

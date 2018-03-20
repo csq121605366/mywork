@@ -2,7 +2,7 @@
   <section class="imglist">
     <ul v-if="series" class="imglist__content" @click.stop.prevent="showHandle(false)">
       <li class="imglist__item" v-for="i in Math.min(20, series.imageNum)" :key="i">
-        <img :src="series.imgBase.substr(0,series.imgBase.length-7)+'IY'+i+'.png'+imgIY[i]" alt="">
+        <img @click.stop="_getRead(series.id)" :src="series.imgBase.substr(0,series.imgBase.length-7)+'IY'+i+'.png'+imgIY[i]" alt="">
       </li>
     </ul>
     <ul class="fnBtns">
@@ -12,7 +12,8 @@
     </ul>
     <transition name="bounce">
       <div class="layerBox" v-if="layerStatus">
-        <i class="rayplus-icons delete" @click.stop="layerStatus=false">delete</i>
+        <div class="layerBox__layer" @click.stop.prevent="layerStatus=false"></div>
+        <!-- <i class="rayplus-icons" @click.stop="layerStatus=false">delete</i> -->
         <p>当前用户无三维功能使用权限</p>
         <p>请关注“睿佳医影”公众号申请试用</p>
         <div class="code"><img src="./images/code.png" /></div>
@@ -70,11 +71,7 @@ export default {
     },
     _to3D(url) {
       if (this.userInfo.userStatus != 0) {
-        this.layerStatus = true;
-        this.$message({
-          message: "您没有操作权限",
-          type: "warning"
-        });
+        this.layerStatus = !this.layerStatus;
       } else {
         // 存储seriesActiveId 用于页面跳转回来的时候的显示
         store.set("activeGroup", {

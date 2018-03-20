@@ -7,16 +7,18 @@
     <div v-if="series" class="series__content">
       <!-- <scroll ref="seriesScroll" :list="series" class="series__scroll"> -->
         <ul v-if="series" class="series__list">
-          <li :class="seriesActiveId==item.id?'active':''" v-if="item.visible == 1||showHide?true:false" v-for="(item,index) in series" :key="index" class="series__list__item">
+          <li :class="seriesActiveId==item.id?'active':''" 
+          v-if="item.visible == 1||showHide?true:false" 
+          v-for="(item,index) in series" :key="index" class="series__list__item">
             <!-- 显示的数据 -->
             <div v-if="item.visible" class="series__list__order visible">
               <img @click.self.prevent="seriesShowHide(item,false)"  class="series__list__eye" src="./images/eye--light.png" />
-              <span>序列号&nbsp;:&nbsp;{{item.id}}</span>
+              <span>序列号：{{item.id}}</span>
             </div>
             <!-- 隐藏的数据 -->
             <div  v-else class="series__list__order">
               <img @click.self.prevent="seriesShowHide(item,true)" class="series__list__eye" src="./images/eye--gray.png" />
-              <span>序列号&nbsp;:&nbsp;{{item.id}}</span>
+              <span>序列号：{{item.id}}</span>
             </div>
             <ul @click="getCurseries(item,item.id)" class="series__list__info">
               <li>
@@ -35,9 +37,12 @@
               </li>
             </ul>
             <div class="series__list__remark">
-              <span class="series__list__remark-label" :class="item.visible?'visible':''">备注&nbsp;:&nbsp;</span>
+              <span 
+                class="series__list__remark-label" 
+                :class="item.visible?'visible':''"
+              >备注&nbsp;:&nbsp;</span>
               <div class="series__list__remark-txt">
-                <input class="series__list__remark-input" type="text" v-model="item.remarks" disabled :value="item.remarks.length?item.remarks:'点击右侧编辑图标，添加备注信息'" 
+                <input class="series__list__remark-input" type="text" v-model="item.remarks" disabled placeholder="点击右侧编辑图标，添加备注信息" 
                 @blur.stop.prevent="changeSeriesRemarks(item,index,$event,true)">
               </div>
               <img v-if="focusId!=index" @click.stop.prevent="remarkOnFocus(item,index,$event)" class="series__list__remark-btn" src="./images/remark.png" />
@@ -55,6 +60,7 @@ import Scroll from "@/base/scroll";
 import { changeremarks, seriesHide, seriesShow } from "@/api";
 import { getObjXy } from "@/util/tool.js";
 import store from "store";
+
 export default {
   props: {
     oSeries: {
@@ -100,45 +106,46 @@ export default {
       let nHeader = getObjXy(document.querySelector(".header")).height;
       let nSeriesHeader = getObjXy(document.querySelector(".series__header"))
         .height;
-
       let scrolly = getObjXy(target).top - nHeader - nSeriesHeader - 50;
-      // this.$refs.seriesScroll.scrollBy(0, -scrolly, 1);
 
-      // e.scrollIntoView(true);
-      // e.scrollIntoViewIfNeeded();
       target.disabled = false;
       target.focus();
     },
     changeSeriesRemarks(res, index, e, flag) {
-      // 改变seies值
-      let target;
-      if (flag) {
-        target = e.target;
-      } else {
-        target = e.target.parentElement.children[1].children[0];
-      }
-      // 将输入框变为不可用
-      target.disabled = true;
-      target.blur();
-      if (target.value != "") {
-        let data = {
-          seriesid: res.id,
-          remarks: target.value
-        };
-        changeremarks(data).then(response => {
-          if (response.r) {
-            alert("备注修改失败！");
-          }
-          this.changeRemarkIng = true;
-          this.focusId = -1;
-        });
-      } else {
-        // 设置定时器解决300秒问题
-        setTimeout(() => {
-          target.value = res.remarks;
-          this.changeRemarkIng = true;
-          this.focusId = -1;
-        }, 300);
+      // cansend 解决 input blur 和点击提交按钮的 两次运行这个方法的问题
+      if (!this.cansend) {
+        this.cansend = true;
+        // 改变seies值
+        let target;
+        if (flag) {
+          target = e.target;
+        } else {
+          target = e.target.parentElement.children[1].children[0];
+        }
+        // 将输入框变为不可用
+        target.disabled = true;
+        target.blur();
+        if (target.value != "") {
+          let data = {
+            seriesid: res.id,
+            remarks: target.value
+          };
+          changeremarks(data).then(response => {
+            if (response.r) {
+              alert("备注修改失败！");
+            }
+            this.changeRemarkIng = false;
+            this.focusId = -1;
+            this.cansend = false;
+          });
+        } else {
+          setTimeout(() => {
+            target.value = res.remarks;
+            this.changeRemarkIng = false;
+            this.cansend = false;
+            this.focusId = -1;
+          }, 300);
+        }
       }
     },
     seriesShowHideReq(req, flag) {

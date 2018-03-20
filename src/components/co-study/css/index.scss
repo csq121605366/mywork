@@ -6,7 +6,7 @@
         position: relative;
         height: 88px;
         padding: 0 30px;
-        border-bottom: 1px solid #dfdfdf;
+        border-bottom: 1px solid #dfdfdf; /*no*/
         display: flex;
         flex-flow: column nowrap;
         justify-content: center;
@@ -73,6 +73,7 @@
         justify-content: space-between;
         align-items: center;
         padding: 0 30px;
+        border-bottom: 1px solid #dfdfdf; /*no*/
         li.active {
             color: #e68f04;
         }
@@ -134,7 +135,7 @@
     }
     &__study {
         &__info {
-            font-size: 30px;
+            font-size: 28px;
             color: #666;
             line-height: 44px;
             &__wrap {
@@ -166,7 +167,9 @@
         height: 100%;
         width: 100%;
         overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
         padding-bottom: 10px;
+        background-color: #d6d8da;
         &__item {
             margin-top: 10px;
             background-color: #fff;
@@ -179,7 +182,6 @@
         }
         &__remark {
             position: relative;
-            font-size: 30px;
             height: 76px;
             display: flex;
             flex-flow: row nowrap;

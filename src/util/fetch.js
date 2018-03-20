@@ -3,9 +3,9 @@ import MessageBox from '@/extend/message';
 // 创建axios实例
 
 const service = axios.create({
-    baseURL: SERVERDOMAIN, // api的base_url baseURL: process.env.NODE_ENV ==
-    // 'development'     ? SERVERDOMAIN     : '', // api的
-    // baseURL:'https://106.15.103.194',
+    baseURL: process.env.NODE_ENV == 'development'
+        ? SERVERDOMAIN
+        : 'https://106.15.103.194',
     timeout: 5000,
     headers: {
         'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
@@ -50,7 +50,6 @@ service
    * 如通过xmlhttprequest 状态码标识 逻辑可写在下面error中
    */
     error => {
-        MessageBox({type: 'error', message: '请求出现故障'})
         return Promise.reject(error);
     })
 

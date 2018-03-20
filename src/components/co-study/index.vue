@@ -84,7 +84,7 @@
 <script>
 import Scroll from "@/base/scroll";
 import { changeremarks } from "@/api";
-import { getObjXy } from "@/util/tool.js";
+import { getObjXy, cloneObj } from "@/util/tool.js";
 import sortBy from "lodash/sortBy";
 export default {
   props: {
@@ -122,6 +122,8 @@ export default {
   methods: {
     _initData() {
       this.patients = this.oPatients;
+      // let test = cloneObj(this.oPatients[0].studies);
+      // this.oPatients[0].studies.push(test);
     },
     remarkOnFocus(res, x, y, e) {
       this.focusId = { x, y };
@@ -143,35 +145,40 @@ export default {
       target.focus();
     },
     changeStudyRemarks(res, x, y, e, flag) {
-      // flag 表示是自己blur或者是点击图标
-      let target;
-      if (flag) {
-        target = e.target;
-      } else {
-        target = e.target.parentElement.children[1].children[0];
-      }
-      // 将输入框变为不可用
-      target.disabled = true;
-      target.blur();
-      if (target.value != "") {
-        let data = {
-          studyid: res.id,
-          remarks: target.value
-        };
-        changeremarks(data).then(response => {
-          if (response.r) {
-            alert("备注修改失败！");
-          }
-          this.changeRemarkIng = false;
-          this.focusId = { x: -1, y: -1 };
-        });
-      } else {
-        // 设置定时器解决300秒问题
-        setTimeout(() => {
-          this.changeRemarkIng = false;
-          target.value = res.remarks;
-          this.focusId = { x: -1, y: -1 };
-        }, 300);
+      // cansend 解决 input blur 和点击提交按钮的 两次运行这个方法的问题
+      if (!this.canSend) {
+        this.canSend = true;
+        // flag 表示是自己blur或者是点击图标
+        let target;
+        if (flag) {
+          target = e.target;
+        } else {
+          target = e.target.parentElement.children[1].children[0];
+        }
+        // 将输入框变为不可用
+        target.disabled = true;
+        target.blur();
+        if (target.value != "") {
+          let data = {
+            studyid: res.id,
+            remarks: target.value
+          };
+          changeremarks(data).then(response => {
+            if (response.r) {
+              alert("备注修改失败！");
+            }
+            this.changeRemarkIng = false;
+            this.canSend = false;
+            this.focusId = { x: -1, y: -1 };
+          });
+        } else {
+          setTimeout(() => {
+            this.changeRemarkIng = false;
+            this.canSend = false;
+            target.value = res.remarks;
+            this.focusId = { x: -1, y: -1 };
+          }, 300);
+        }
       }
     },
     resetActiveId() {

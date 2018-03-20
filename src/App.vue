@@ -1,15 +1,11 @@
 <template>
   <div id="app">
-    <co-header :userInfo="userInfo" @backHandle="backHandle"></co-header>
+    <co-header @getUserStatus="_initData" @backHandle="backHandle"></co-header>
     <co-study v-if="oPatients" ref="studyRef"  @seriesActive="seriesActive" :oPatients="oPatients"></co-study>
     <transition name="slideright">
       <co-series v-if="seriesShow"  @getCurseries="_getCurseries" :oSeries="oSeries"></co-series>
     </transition>
-      <co-images v-if="curSeries" :userInfo="userInfo" @imageShow="imageShow" :studyActive="studyActive" :curSeries="curSeries" :imgIY="imgIY"></co-images>
-    <co-layer :isShow="isShow" @changeType="changeLayerType">
-      <p>为了更好的体验，</p>
-      <p>建议您使用Chrome浏览器进入本系统</p>
-    </co-layer>
+    <co-images v-if="curSeries" :userInfo="userInfo" @imageShow="imageShow" :studyActive="studyActive" :curSeries="curSeries" :imgIY="imgIY"></co-images>
   </div>
 </template>
 
@@ -17,9 +13,8 @@
 import CoHeader from "@/components/co-header";
 import CoSeries from "@/components/co-series";
 import CoStudy from "@/components/co-study";
-import CoLayer from "@/components/co-layer";
 import CoImages from "@/components/co-images";
-import { login, getUserStatus, getData, mGetData, checkStatus } from "@/api";
+import { login, getData, mGetData, checkStatus } from "@/api";
 import { userAgent, IsPC } from "@/util/tool";
 import store from "store";
 
@@ -29,7 +24,6 @@ export default {
     CoHeader,
     CoSeries,
     CoStudy,
-    CoLayer,
     CoImages
   },
   created() {
@@ -40,16 +34,15 @@ export default {
       else window.location.href = "../datalist/index.html";
     }
     if (!userAgent()) {
-      this.isShow = true;
+      this.$message({
+        message: ["为了更好的体验，", "建议您使用Chrome浏览器进入本系统"]
+      });
     }
-    this._initData();
-
     eruda.init();
   },
   data() {
     return {
       userInfo: null,
-      isShow: false,
       oPatients: null,
       seriesShow: false,
       oSeries: null,
@@ -62,15 +55,6 @@ export default {
   },
   methods: {
     backHandle: function() {
-      // if (this.seriesList != null) {
-      //   this.seriesList = null;
-      //   this.oSeriesList = null;
-      //   this.searchInput = "";
-      // } else {
-      //   window.location.href = this.loginUrl;
-      // }
-      // 重置活动id
-      // this.$refs.studyRef.resetActiveId();
       if (this.oSeries) {
         this.seriesShow = false;
         this.oSeries = null;
@@ -83,44 +67,7 @@ export default {
       // 失败就重新登陆
       window.location.href = "https://www.rayplus.net/login/index.html";
     },
-    changeLayerType(res) {
-      return;
-    },
-    _login() {
-      return new Promise((resolve, reject) => {
-        let data = {
-          string: "user3",
-          password: 123456
-        };
-        login(data).then(res => {
-          let code = res.code;
-          if (code == 1) {
-            resolve();
-          } else {
-            reject();
-          }
-        });
-      });
-    },
-    _getUserStatus() {
-      return new Promise((resolve, reject) => {
-        getUserStatus().then(res => {
-          let code = res.code;
-          if (code == 27) {
-            reject(code);
-          } else {
-            let space = res.space;
-            let used = Math.ceil(Number(res.used) * 100) / 100;
-            this.userInfo = {
-              name: res.username,
-              space: used + "G/" + space + "G",
-              userStatus: res.userStatus
-            };
-            resolve(res);
-          }
-        });
-      });
-    },
+    _getUserStatus(flag, userInfo) {},
     _getData() {
       // 获取数据
       return new Promise((resolve, reject) => {
@@ -145,59 +92,51 @@ export default {
           this.$message({
             message: "获取信息失败",
             type: "error",
-            durtion: 3e6
+            durtion: 3e3
           });
         }
       });
     },
     _active() {
       let activeGroup = store.get("activeGroup");
-      this.oPatients.forEach(x => {
-        x.studies.forEach(y => {
-          if (y.id == activeGroup.STUDYID) {
-            y.series.forEach(z => {
-              if (z.id == activeGroup.SID) {
-                // 此时说明有活动页 active变为ture
-                let s = store.get("activeGroup");
-                s.ACTIVE = true;
-                store.set("activeGroup", s);
-                this.seriesActive(y.series, x.id);
-              }
-            });
-          }
-        });
-      });
-    },
-    _initData() {
-      // 初始化数据
-      this._login()
-        .then(() => {
-          // 登陆成功
-          this._getUserStatus()
-            .then(res => {
-              // 获取用户状态
-              this._getData()
-                .then(() => {
-                  // 数据获取成功 检测是否有activeGroup
-                  this._active();
-                })
-                .catch(() => {
-                  // this.gotoLogin();
-                });
-            })
-            .catch(err => {
-              // 获取用户状态失败
-              this.gotoLogin();
-            });
-        })
-        .catch(() => {
-          // 登陆不成功
-          this.$message({
-            message: "登录失败",
-            type: "error",
-            durtion: 3e6
+      if (activeGroup) {
+        this.oPatients.forEach(x => {
+          x.studies.forEach(y => {
+            if (y.id == activeGroup.STUDYID) {
+              y.series.forEach(z => {
+                if (z.id == activeGroup.SID) {
+                  // 此时说明有活动页 active变为ture
+                  let s = store.get("activeGroup");
+                  s.ACTIVE = true;
+                  store.set("activeGroup", s);
+                  this.seriesActive(y.series, x.id);
+                }
+              });
+            }
           });
         });
+      }
+    },
+    _initData(flag, userInfo) {
+      // flag表示登录是否成功
+      if (flag) {
+        this.userInfo = userInfo;
+        // 获取用户状态
+        this._getData()
+          .then(() => {
+            // 数据获取成功 检测是否有activeGroup
+            this._active();
+          })
+          .catch(() => {
+            this.gotoLogin();
+          });
+      } else {
+        this.$message({
+          message: "数据请求失败",
+          durtion: 1e8
+        });
+        this.gotoLogin();
+      }
     },
     seriesActive(series, studyActive) {
       this.seriesShow = true;
@@ -248,6 +187,7 @@ html,
 body {
   height: 100%;
   width: 100%;
+  overflow: hidden;
 }
 #app {
   height: 100%;
