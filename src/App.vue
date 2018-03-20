@@ -96,7 +96,6 @@ export default {
     },
     _active() {
       let activeGroup = store.get("activeGroup");
-      console.log(activeGroup);
       if (activeGroup) {
         this.oPatients.forEach(x => {
           x.studies.forEach(y => {
