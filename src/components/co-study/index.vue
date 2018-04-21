@@ -55,7 +55,7 @@
             <div class="study__study__info study__info">
               <ul>
                 <li>
-                  <span class="f">Study：{{ceil.description}}</span>
+                  <span>Study：{{ceil.description}}</span>
                 </li>
                 <li>
                   <span class="f">{{ceil.parts}}／{{ceil.mode}}</span>
@@ -82,7 +82,6 @@
 </template>
 
 <script>
-import Scroll from "@/base/scroll";
 import { changeremarks } from "@/api";
 import { getObjXy, cloneObj } from "@/util/tool.js";
 import sortBy from "lodash/sortBy";
@@ -278,9 +277,6 @@ export default {
         });
       }
     }
-  },
-  components: {
-    Scroll
   },
   filters: {
     sexFilter(res) {

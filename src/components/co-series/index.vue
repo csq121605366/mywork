@@ -57,7 +57,6 @@
 </template>
 
 <script>
-import Scroll from "@/base/scroll";
 import { changeremarks, seriesHide, seriesShow, checkStatus } from "@/api";
 import { getObjXy } from "@/util/tool.js";
 import store from "store";
@@ -183,9 +182,6 @@ export default {
           });
         });
     }
-  },
-  components: {
-    Scroll
   }
 };
 </script>

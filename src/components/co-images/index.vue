@@ -69,7 +69,7 @@ export default {
       this.$emit("imageShow", flag);
     },
     _to3D(url) {
-      if (this.userInfo.userStatus != 0) {
+      if (this.userInfo.userStatus == 0) {  
         this.layerStatus = !this.layerStatus;
       } else {
         // 存储seriesActiveId 用于页面跳转回来的时候的显示
