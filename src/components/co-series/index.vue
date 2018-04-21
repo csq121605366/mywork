@@ -1,56 +1,51 @@
 <template>
   <div v-cloak class="series">
     <div class="series__header">
-      <div class="series__header__btn series__header__btn--show" @click.self.prevent="showHide=true" :class="showHide?'active':''">显示 "隐藏数据"</div>
-      <div class="series__header__btn series__header__btn--hide" @click.self.prevent="showHide=false" :class="!showHide?'active':''">不显示 "隐藏数据"</div>
+      <div class="series__header__btn series__header__btn--show" @click.self.prevent="showHide=true" :class="showHide?'active':''">
+        <i v-if="showHide" class="series__header__btn--select"></i>显示 "隐藏数据"</div>
+      <div class="series__header__btn series__header__btn--hide" @click.self.prevent="showHide=false" :class="!showHide?'active':''">
+        <i v-if="!showHide" class="series__header__btn--select"></i>不显示 "隐藏数据"</div>
     </div>
     <div v-if="series" class="series__content">
       <!-- <scroll ref="seriesScroll" :list="series" class="series__scroll"> -->
-        <ul v-if="series" class="series__list">
-          <li 
-          :class="{'active':seriesActiveId==item.id?true:false,'visible':item.visible==1?true:false}" 
-          v-if="item.visible == 1||showHide?true:false" 
-          v-for="(item,index) in series" :key="index" class="series__list__item">
-            <!-- 显示的数据 -->
-            <div v-if="item.visible" class="series__list__order">
-              <img @click.self.prevent="seriesShowHide(item,false)"  class="series__list__eye" src="./images/eye--light.png" />
-              <span>序列号：{{item.id}}</span>
+      <ul v-if="series" class="series__list">
+        <li :class="{'active':seriesActiveId==item.id?true:false,'visible':item.visible==1?true:false}" v-if="item.visible == 1||showHide?true:false" v-for="(item,index) in series" :key="index" class="series__list__item">
+          <!-- 显示的数据 -->
+          <div v-if="item.visible" class="series__list__order">
+            <img @click.self.prevent="seriesShowHide(item,false)" class="series__list__eye" src="./images/eye--light.png" />
+            <span class="font-bold">序列号：{{item.id}}</span>
+          </div>
+          <!-- 隐藏的数据 -->
+          <div v-else class="series__list__order">
+            <img @click.self.prevent="seriesShowHide(item,true)" class="series__list__eye" src="./images/eye--gray.png" />
+            <span class="font-bold">序列号：{{item.id}}</span>
+          </div>
+          <ul @click="getCurseries(item,item.id)" class="series__list__info">
+            <li>
+              <span>Series：{{item.description}}</span>
+            </li>
+            <li>
+              <span>分辨率：{{item.resolution}}</span>
+            </li>
+            <li>
+              <span>层厚：{{item.thickness}}</span>
+            </li>
+            <li class="series__list__info--flex">
+              <span>#im：{{item.imageNum}}</span>
+              <span>{{item.parts}}/{{item.mode}}</span>
+              <span>日期：{{item.date}}</span>
+            </li>
+          </ul>
+          <div class="series__list__remark">
+            <span class="series__list__remark-label" >备注：</span>
+            <div class="series__list__remark-txt">
+              <input class="series__list__remark-input" type="text" v-model="item.remarks" disabled placeholder="点击右侧编辑图标，添加备注信息" @blur.stop.prevent="changeSeriesRemarks(item,index,$event)">
             </div>
-            <!-- 隐藏的数据 -->
-            <div  v-else class="series__list__order">
-              <img @click.self.prevent="seriesShowHide(item,true)" class="series__list__eye" src="./images/eye--gray.png" />
-              <span>序列号：{{item.id}}</span>
-            </div>
-            <ul @click="getCurseries(item,item.id)" class="series__list__info">
-              <li>
-                <span>Series：{{item.description}}</span>
-              </li>
-              <li>
-                <span>分辨率：{{item.resolution}}</span>
-              </li>
-              <li>
-                <span>层厚：{{item.thickness}}</span>
-              </li>
-              <li>
-                <span class="txt-left">#im：{{item.imageNum}}</span>
-                <span class="txt-center">{{item.parts}}/{{item.mode}}</span>
-                <span class="txt-right">日期：{{item.date}}</span>
-              </li>
-            </ul>
-            <div class="series__list__remark">
-              <span 
-                class="series__list__remark-label" 
-                :class="item.visible?'visible':''"
-              >备注：</span>
-              <div class="series__list__remark-txt">
-                <input class="series__list__remark-input" type="text" v-model="item.remarks" disabled placeholder="点击右侧编辑图标，添加备注信息" 
-                @blur.stop.prevent="changeSeriesRemarks(item,index,$event)">
-              </div>
-              <img v-if="focusId!=index" @click.stop.prevent="remarkOnFocus(item,index,$event)" class="series__list__remark-btn" src="./images/remark.png" />
-              <img v-else class="series__list__remark-btn" src="./images/qd.png" alt="">
-            </div>
-          </li>
-        </ul>
+            <img v-if="focusId!=index" @click.stop.prevent="remarkOnFocus(item,index,$event)" class="series__list__remark-btn" src="./images/remark.png" />
+            <img v-else class="series__list__remark-btn" src="./images/qd.png" alt="">
+          </div>
+        </li>
+      </ul>
       <!-- </scroll> -->
     </div>
   </div>

@@ -167,6 +167,11 @@ body {
   overflow: hidden;
 }
 
+.font-bold {
+  font-weight: 700;
+}
+
+
 .slideleft-enter-active,
 .slideleft-leave-active,
 .slideright-enter-active,

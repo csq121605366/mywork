@@ -1,81 +1,70 @@
 <template>
-  <ul  v-cloak class="study">
+  <ul v-cloak class="study">
     <div class="study__header">
       <div class="study__search">
-        <img @click.stop.prevent="serachHandle" class="study__search__icon" src="./images/ss_06.png" />
-        <input class="study__search__txt" ref="searchEl" @focus="searchClose=true" @blur="serachHandle"  v-model="searchInput" placeholder="姓名 / ID / 日期 / 描述 / 备注" type="text">
-        <img @click="serachResetHandle" v-show="searchClose" class="study__search__icon p-8" src="./images/ss_03.png" />
+        <img @click.stop.prevent="serachHandle" class="study__search__icon search" src="./images/ss_06.png" />
+        <input class="study__search__txt" ref="searchEl" @focus="searchClose=true" @blur="serachHandle" v-model="searchInput" placeholder="姓名 / ID / 日期 / 描述 / 备注" type="text">
+        <img @click="serachResetHandle" v-show="searchClose" class="study__search__icon close" src="./images/ss_03.png" />
       </div>
     </div>
     <ul class="study__sort">
-      <li @click.stop.prevent="sort('id')">
-           <span>病人ID</span>
-          <img v-if="sortParam.sortBy=='id'&&sortParam.sortDir" style="transform: rotateZ(-180deg);"  src="./images/sort--light.png" alt="">
-          <img v-else-if="sortParam.sortBy=='id'&&!sortParam.sortDir" src="./images/sort--light.png" alt="">
-          <img v-else src="./images/sort--gray.png" alt="">
-        </li>
-      <li @click.stop.prevent="sort('name')">
-          <span>病人姓名</span>
-          <img v-if="sortParam.sortBy=='name'&&sortParam.sortDir"  style="transform: rotateZ(-180deg);"  src="./images/sort--light.png" alt="">
-          <img v-else-if="sortParam.sortBy=='name'&&!sortParam.sortDir"  src="./images/sort--light.png" alt="">
-          <img v-else src="./images/sort--gray.png" alt="">
-       </li>
-      <li @click.stop.prevent="sort('uploadTime')">
-            <span>上传时间</span>
-            <img v-if="sortParam.sortBy=='uploadTime'&&sortParam.sortDir"  style="transform: rotateZ(-180deg);"  src="./images/sort--light.png" alt="">
-            <img v-else-if="sortParam.sortBy=='uploadTime'&&!sortParam.sortDir" src="./images/sort--light.png" alt="">
-            <img v-else src="./images/sort--gray.png" alt="">
-        </li>
+      <li :class="sortParam.sortBy=='id'?'active':''" @click.stop.prevent="sort('id')">
+        <span>病人ID</span>
+        <img v-if="sortParam.sortBy=='id'&&sortParam.sortDir" style="transform: rotateZ(-180deg);" src="./images/sort--light.png" alt="">
+        <img v-else-if="sortParam.sortBy=='id'&&!sortParam.sortDir" src="./images/sort--light.png" alt="">
+        <img v-else src="./images/sort--gray.png" alt="">
+      </li>
+      <li :class="sortParam.sortBy=='name'?'active':''" @click.stop.prevent="sort('name')">
+        <span>病人姓名</span>
+        <img v-if="sortParam.sortBy=='name'&&sortParam.sortDir" style="transform: rotateZ(-180deg);" src="./images/sort--light.png" alt="">
+        <img v-else-if="sortParam.sortBy=='name'&&!sortParam.sortDir" src="./images/sort--light.png" alt="">
+        <img v-else src="./images/sort--gray.png" alt="">
+      </li>
+      <li :class="sortParam.sortBy=='uploadTime'?'active':''" @click.stop.prevent="sort('uploadTime')">
+        <span>上传时间</span>
+        <img v-if="sortParam.sortBy=='uploadTime'&&sortParam.sortDir" style="transform: rotateZ(-180deg);" src="./images/sort--light.png" alt="">
+        <img v-else-if="sortParam.sortBy=='uploadTime'&&!sortParam.sortDir" src="./images/sort--light.png" alt="">
+        <img v-else src="./images/sort--gray.png" alt="">
+      </li>
     </ul>
     <section class="study__content">
       <!-- <scroll ref="studyScroll" :list="patients" class="study__scroll"> -->
-        <ul v-if="patients" class="study__list">
-          <li v-for="(item,x) in patients" :key="x" class="study__list__item">
-            <div class="study__info__wrap study__base__info__wrap">
-                  <div class="study__base__info study__info">
-                  <div class="study__base__name">
-                    <p>病人姓名：{{item.name}}</p>
-                  </div>
-                  <ul class="study__base__other">
-                    <li>
-                      <span class="f">病人ID：{{item.id}}</span>
-                      <span>性别：{{item.gender|sexFilter}}</span>
-                    </li>
-                    <li>
-                      <span class="f">年龄：{{item.studies[0].age}}</span>
-                      <span>出生日期：{{item.birth}}</span>
-                    </li>
-                  </ul>
-                </div>
+      <ul v-if="patients" class="study__list">
+        <li v-for="(item,x) in patients" :key="x" class="study__list__item">
+          <div class="study__base__info__wrap">
+            <div class="study__base__info study__info">
+              <div class="study__base__name">
+                <p class="font-bold">病人姓名：{{item.name}}</p>
+                <p>病人ID：{{item.id}}</p>
+              </div>
+              <div class="study__base__other">
+                <p>年龄：{{item.studies[0].age}}</p>
+                <p>性别：{{item.gender|sexFilter}}</p>
+                <p>出生日期：{{item.birth}}</p>
+              </div>
             </div>
-            <div v-if="item.studies.length" v-for="(ceil,y) in item.studies" :key="y"  class="study__info__wrap study__study__info__wrap"
-            :class="activeId == ceil.id?'active':''"
-            @click.stop="clickStudyHandle(ceil,ceil.id)"
-            >
-            <div class="study__study__info study__info">
-              <ul>
-                <li>
-                  <span>Study：{{ceil.description}}</span>
-                </li>
-                <li>
-                  <span class="f">{{ceil.parts}}／{{ceil.mode}}</span>
-                  <span>Study日期：{{ceil.date}}</span>
-                </li>
-              </ul>
-                <div class="study__list__remark">
+          </div>
+          <div v-if="item.studies.length" v-for="(ceil,y) in item.studies" :key="y" class="study__study__info__wrap" :class="activeId == ceil.id?'active':''" @click.stop="clickStudyHandle(ceil,ceil.id)">
+            <div class="study__study__info">
+              <div>
+                <span class="font-bold">Study：{{ceil.description}}</span>
+              </div>
+              <div class="study__study__info__flex">
+                <span>{{ceil.parts}}／{{ceil.mode}}</span>
+                <span>Study日期：{{ceil.date}}</span>
+              </div>
+              <div class="study__list__remark">
                 <span class="study__list__remark-label">备注：</span>
                 <div class="study__list__remark-txt">
-                  <input class="study__list__remark-input" type="text" v-model="ceil.remarks" disabled placeholder="点击右侧编辑图标，添加备注信息"
-                  @blur="changeStudyRemarks(ceil,x,y,$event,true)"
-                  >
+                  <input class="study__list__remark-input" type="text" v-model="ceil.remarks" disabled placeholder="点击右侧编辑图标，添加备注信息" @blur="changeStudyRemarks(ceil,x,y,$event,true)">
                 </div>
                 <img v-if="focusId.x!=x||focusId.y!=y" @click.stop.prevent="remarkOnFocus(ceil,x,y,$event)" class="study__list__remark-btn" src="./images/remark.png" />
                 <img v-else class="study__list__remark-btn" src="./images/qd.png" alt="">
               </div>
             </div>
-            </div>
-          </li>
-        </ul>
+          </div>
+        </li>
+      </ul>
       <!-- </scroll> -->
     </section>
   </ul>
